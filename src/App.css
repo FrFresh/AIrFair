@@ -1,0 +1,105 @@
+.app {
+  display: grid;
+  grid-template-rows: 56px 1fr;
+  height: 100%;
+  position: relative;
+}
+
+.nav {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0 0.75rem;
+  background: var(--panel);
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.nav button {
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.nav button:hover {
+  border-color: var(--accent);
+}
+
+.stage {
+  position: relative;
+}
+
+.storyPanel {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  max-width: 420px;
+  background: rgba(18, 18, 18, 0.9);
+  border: 1px solid #2a2a2a;
+  padding: 1rem;
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.storyPanel h3 {
+  margin: 0.25rem 0 0.5rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.storyPanel .pe {
+  color: #bbb;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
+}
+
+.storyPanel p {
+  margin: 0;
+  color: #ddd;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.brand-label {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  color: #d61f29;
+  z-index: 1000;
+  pointer-events: none;
+  text-transform: uppercase;
+}
+
+.audio-toggle {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(18, 18, 18, 0.9);
+  border: 1px solid #2a2a2a;
+  color: var(--text);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.audio-toggle:hover {
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
