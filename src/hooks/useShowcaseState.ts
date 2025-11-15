@@ -9,7 +9,7 @@ export type ShowcaseState = {
 };
 
 export function useShowcaseState() {
- été const [state, setState] = useState<ShowcaseState>({
+  const [state, setState] = useState<ShowcaseState>({
     mode: null,
     currentSilhouette: null,
     isTransitioning: false,

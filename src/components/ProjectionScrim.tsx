@@ -43,9 +43,9 @@ const ProjectionScrim = forwardRef<ProjectionScrimHandle, Props>((props, ref) =>
     scene,
   } = props;
 
-  const groupRef = useRef<THREE.Group>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
-  const matRef = useRef<THREE.ShaderMaterial>(null);
+  const groupRef = useRef<THREE.Group | null>(null);
+  const meshRef = useRef<THREE.Mesh | null>(null);
+  const matRef = useRef<THREE.ShaderMaterial | null>(null);
   const videoRef = useRef<HTMLVideoElement>();
   const texRef = useRef<THREE.VideoTexture>();
   const rafRef = useRef<number>();
@@ -240,7 +240,6 @@ const ProjectionScrim = forwardRef<ProjectionScrimHandle, Props>((props, ref) =>
             pointerEvents: 'none',
             zIndex: 1000,
             opacity: 0,
-            y: 20,
           }}
         >
           {title && (

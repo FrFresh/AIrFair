@@ -134,7 +134,11 @@ const RevealPanels = forwardRef<RevealPanelsHandle, RevealPanelsProps>(({
       meshesRef.current.forEach((mesh) => {
         scene.remove(mesh);
         mesh.geometry.dispose();
-        mesh.material.dispose();
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach(mat => mat.dispose());
+        } else {
+          mesh.material.dispose();
+        }
       });
       meshesRef.current = [];
       materialsRef.current = [];
