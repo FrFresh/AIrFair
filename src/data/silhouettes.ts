@@ -23,6 +23,7 @@ export type Silhouette = {
   modelPath?: string;
   showcaseMode: ShowcaseMode;
   videoPath?: string;
+  reference?: string;
   // legacy compat
   pe: { athlete: string; peName: string; year?: number; summary: string };
 };
