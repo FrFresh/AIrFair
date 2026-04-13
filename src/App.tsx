@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import ThreeMuseum from './components/ThreeMuseum';
 import SneakerRoom from './components/SneakerRoom';
@@ -29,13 +29,38 @@ export default function App() {
   const [api, setApi] = useState<SceneApi | null>(null);
   const [current, setCurrent] = useState<Silhouette | null>(null);
 
+  // Keep a ref so stable callbacks (useCallback []) can always read the latest api
+  const apiRef = useRef<SceneApi | null>(null);
+
   const scrimRef  = useRef<ProjectionScrimHandle>(null);
   const panelsRef = useRef<RevealPanelsHandle>(null);
 
-  // ── Place shoes + default selection ─────────────────────────────────────
+  // ── Navigation ───────────────────────────────────────────────────────────
+  // useCallback with [] so the reference never changes — ThreeMuseum's
+  // onSelect won't trigger a scene rebuild when the parent re-renders.
+  // apiRef always holds the latest api even with empty deps.
+
+  const handleNav = useCallback((id: 'aj1' | 'aj3' | 'aj12') => {
+    const silhouette = SILHOUETTES.find(s => s.id === id);
+    if (!silhouette || !apiRef.current) return;
+    setCurrent(silhouette);
+    moveCameraTo(apiRef.current.camera, id);
+    applyAtmosphere(apiRef.current.scene, silhouette.accentColor);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleClose = useCallback(() => {
+    setCurrent(null);
+    if (apiRef.current) {
+      moveCameraTo(apiRef.current.camera, 'entrance');
+      resetAtmosphere(apiRef.current.scene);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Place shoes when Three.js scene is ready ─────────────────────────────
 
   useEffect(() => {
     if (!api) return;
+    apiRef.current = api; // sync ref whenever state updates
 
     SILHOUETTES.forEach((s, i) => {
       const x = [-4, 0, 4][i];
@@ -51,27 +76,7 @@ export default function App() {
 
     const t = setTimeout(() => handleNav('aj1'), 400);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [api]);
-
-  // ── Navigation ───────────────────────────────────────────────────────────
-
-  const handleNav = (id: 'aj1' | 'aj3' | 'aj12') => {
-    const silhouette = SILHOUETTES.find(s => s.id === id);
-    if (!silhouette || !api) return;
-
-    setCurrent(silhouette);
-    moveCameraTo(api.camera, id);
-    applyAtmosphere(api.scene, silhouette.accentColor);
-  };
-
-  const handleClose = () => {
-    setCurrent(null);
-    if (api) {
-      moveCameraTo(api.camera, 'entrance');
-      resetAtmosphere(api.scene);
-    }
-  };
+  }, [api, handleNav]);
 
   // ── Render ───────────────────────────────────────────────────────────────
 
@@ -80,7 +85,7 @@ export default function App() {
       {/* Three.js canvas — position:fixed fills viewport from inside ThreeMuseum */}
       <ThreeMuseum
         onReady={setApi}
-        onSelect={id => handleNav(id as 'aj1' | 'aj3' | 'aj12')}
+        onSelect={handleNav}
       />
 
       {/* ── Showcase overlays ───────────────────────────────────────────── */}

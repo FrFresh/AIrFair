@@ -20,6 +20,15 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
   const animationRef = useRef<number>();
   const clickableMeshes = useRef<THREE.Mesh[]>([]);
 
+  // ── Callback refs ─────────────────────────────────────────────────────────
+  // Store callbacks in refs so the scene effect never needs to re-run when
+  // the parent re-renders with new inline function references. The scene is
+  // built ONCE; the refs always hold the latest version of each callback.
+  const onReadyRef  = useRef(onReady);
+  const onSelectRef = useRef(onSelect);
+  useEffect(() => { onReadyRef.current  = onReady;  }, [onReady]);
+  useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+
   useEffect(() => {
     const container = containerRef.current!;
 
@@ -255,7 +264,7 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
       const hits = raycaster.intersectObjects(clickableMeshes.current);
       if (hits.length > 0) {
         const id = shoeMap.get(hits[0].object.uuid);
-        if (id && onSelect) onSelect(id);
+        if (id && onSelectRef.current) onSelectRef.current(id);
       }
     };
     container.addEventListener('click', handleClick);
@@ -283,7 +292,7 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     };
     tick();
 
-    onReady?.({ scene, camera, renderer, addSneaker });
+    onReadyRef.current?.({ scene, camera, renderer, addSneaker });
 
     return () => {
       cancelAnimationFrame(animationRef.current!);
@@ -296,7 +305,8 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
       shoeMap.clear();
       clickableMeshes.current = [];
     };
-  }, [onReady, onSelect]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Scene is built ONCE. Callbacks are accessed via refs above, not deps.
 
   return (
     <div
