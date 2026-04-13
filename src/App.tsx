@@ -39,7 +39,14 @@ function App() {
   };
 
   return (
-    <div className="app">
+    <>
+      {/* Three.js canvas — fills the viewport via position:fixed in ThreeMuseum */}
+      <ThreeMuseum
+        onReady={setApi}
+        onSelect={(id) => handleNav(id as 'aj1' | 'aj3' | 'aj12')}
+      />
+
+      {/* UI layer on top */}
       <div className="brand-label">AIR FAIR</div>
 
       <nav className="nav">
@@ -54,23 +61,16 @@ function App() {
         ))}
       </nav>
 
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        <ThreeMuseum
-          onReady={setApi}
-          onSelect={(id) => handleNav(id as 'aj1' | 'aj3' | 'aj12')}
+      {current && (
+        <SneakerRoom
+          current={current}
+          onClose={() => {
+            setCurrent(null);
+            if (api?.camera) moveCameraTo(api.camera, 'entrance');
+          }}
         />
-
-        {current && (
-          <SneakerRoom
-            current={current}
-            onClose={() => {
-              setCurrent(null);
-              if (api?.camera) moveCameraTo(api.camera, 'entrance');
-            }}
-          />
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 }
 
