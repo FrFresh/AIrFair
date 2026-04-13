@@ -121,6 +121,19 @@
   margin-bottom: 8px;
 }
 
+/* ── Showcase mode badge (inside eyebrow row) ── */
+.mode-badge {
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 2px 7px;
+  border-radius: 50px;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
 .panel-title {
   font-size: 1.75rem;
   font-weight: 800;
