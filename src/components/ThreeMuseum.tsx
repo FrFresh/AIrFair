@@ -26,8 +26,8 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x080808);
-    scene.fog = new THREE.FogExp2(0x080808, 0.04);
+    scene.background = new THREE.Color(0x111111);
+    scene.fog = new THREE.FogExp2(0x111111, 0.022);
 
     // Camera
     const camera = new THREE.PerspectiveCamera(
@@ -51,7 +51,7 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     // Floor
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 14),
-      new THREE.MeshStandardMaterial({ color: 0x0d0d0d, metalness: 0.2, roughness: 0.85 })
+      new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.3, roughness: 0.75 })
     );
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
@@ -60,22 +60,37 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     // Back wall
     const backWall = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 10),
-      new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.95 })
+      new THREE.MeshStandardMaterial({ color: 0x161616, roughness: 0.9 })
     );
     backWall.position.set(0, 4, -3);
     scene.add(backWall);
 
-    // Ambient
-    const amb = new THREE.AmbientLight(0xffffff, 0.15);
+    // Ambient — bright enough to read the shoe colors clearly
+    const amb = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(amb);
 
+    // Hemisphere light: warm from above, cool bounce from below
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x334455, 0.5);
+    scene.add(hemi);
+
     // Main overhead spot
-    const mainSpot = new THREE.SpotLight(0xffffff, 2.5, 18, Math.PI / 6, 0.4, 1.5);
-    mainSpot.position.set(0, 7, 4);
+    const mainSpot = new THREE.SpotLight(0xffffff, 6, 25, Math.PI / 4, 0.35, 1);
+    mainSpot.position.set(0, 8, 5);
+    mainSpot.target.position.set(0, 0, 0);
     mainSpot.castShadow = true;
     mainSpot.shadow.mapSize.width = 2048;
     mainSpot.shadow.mapSize.height = 2048;
     scene.add(mainSpot);
+    scene.add(mainSpot.target);
+
+    // Side fill lights so left/right shoes aren't in shadow
+    const fillL = new THREE.PointLight(0xffffff, 1.5, 20);
+    fillL.position.set(-6, 4, 3);
+    scene.add(fillL);
+
+    const fillR = new THREE.PointLight(0xffffff, 1.5, 20);
+    fillR.position.set(6, 4, 3);
+    scene.add(fillR);
 
     // Per-pedestal accent lights (added during addSneaker)
     let shoeIndex = 0;
@@ -187,8 +202,8 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
       scene.add(heel);
 
       // Accent light under shoe
-      const accentLight = new THREE.PointLight(new THREE.Color(accentColor), 0.8, 3);
-      accentLight.position.set(x, 0.5, 0);
+      const accentLight = new THREE.PointLight(new THREE.Color(accentColor), 2.5, 5);
+      accentLight.position.set(x, 0.3, 0);
       scene.add(accentLight);
 
       // Register upper for click detection
