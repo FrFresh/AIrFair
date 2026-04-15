@@ -578,6 +578,38 @@
 
   .pe-player-photo { height: 130px; }
 
+  /* ── Minimized panel on mobile: collapse to just the eyebrow line ── */
+  .museum-panel.minimized {
+    padding: 8px 16px;
+    padding-bottom: max(8px, calc(env(safe-area-inset-bottom) + 4px));
+    max-height: 52px; /* tightly fits one text line + buttons */
+  }
+
+  .museum-panel.minimized .panel-header {
+    margin-bottom: 0;
+    align-items: center;
+  }
+
+  /* Hide shoe title and subtitle — leave only the eyebrow */
+  .museum-panel.minimized .panel-title,
+  .museum-panel.minimized .panel-subtitle {
+    display: none;
+  }
+
+  .museum-panel.minimized .panel-eyebrow {
+    margin-bottom: 0;
+    font-size: 0.58rem;
+  }
+
+  /* Shrink the action buttons in minimized state */
+  .museum-panel.minimized .panel-nav-btn,
+  .museum-panel.minimized .panel-minimize-btn,
+  .museum-panel.minimized .panel-close {
+    width: 30px;
+    height: 30px;
+    font-size: 1.1rem;
+  }
+
   /* Swipe hint — faint arrow indicators on mobile */
   .swipe-hint {
     display: flex;
