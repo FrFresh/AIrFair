@@ -233,6 +233,8 @@ export default function App() {
               current={current}
               onClose={handleClose}
               onPEChange={(pe) => handlePEChange(current.id, pe.playerImage)}
+              onPrev={() => handleSwipe('right')}
+              onNext={() => handleSwipe('left')}
             />
           )}
 
