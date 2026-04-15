@@ -32,6 +32,9 @@ type SceneApi = {
 export default function App() {
   const [api, setApi] = useState<SceneApi | null>(null);
   const [current, setCurrent] = useState<Silhouette | null>(null);
+  const [phase, setPhase] = useState<'intro' | 'gallery'>('intro');
+  const [doorOpening, setDoorOpening] = useState(false);
+  const [introFading, setIntroFading] = useState(false);
 
   // Keep a ref so stable callbacks (useCallback []) can always read the latest api
   const apiRef = useRef<SceneApi | null>(null);
@@ -57,6 +60,17 @@ export default function App() {
   const handlePEChange = useCallback((shoeId: string, imageUrl?: string) => {
     apiRef.current?.updatePlacard(shoeId, imageUrl);
   }, []);
+
+  const handleIntroClick = useCallback(() => {
+    if (doorOpening) return;
+    setDoorOpening(true);
+    // Doors swing open (1.2s), then frame fades out, then gallery loads
+    setTimeout(() => setIntroFading(true), 1100);
+    setTimeout(() => {
+      setPhase('gallery');
+      handleNav('aj1');
+    }, 1700);
+  }, [doorOpening]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = useCallback(() => {
     setCurrent(null);
@@ -111,8 +125,6 @@ export default function App() {
       loop();
     });
 
-    const t = setTimeout(() => handleNav('aj1'), 400);
-    return () => clearTimeout(t);
   }, [api, handleNav]);
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -157,39 +169,59 @@ export default function App() {
           and a dedicated renderer — see note at top of file. */}
 
       {/* ── UI layer ────────────────────────────────────────────────────── */}
-      <div className="brand-label">AIR FAIR</div>
-
-      {/* Zoom controls — visible when scene is ready */}
-      {api && (
-        <div className="zoom-controls">
-          <button className="zoom-btn" onClick={() => adjustZoom(-1.2)} aria-label="Zoom in">+</button>
-          <button className="zoom-btn" onClick={() => adjustZoom(1.2)} aria-label="Zoom out">−</button>
+      {/* ── Intro entrance screen — animated doors ──────────────── */}
+      {phase === 'intro' && (
+        <div
+          className={`intro-screen${introFading ? ' fading' : ''}`}
+          onClick={handleIntroClick}
+        >
+          <div className={`intro-door-left${doorOpening ? ' opening' : ''}`}>
+            <img src="/images/ui/entryway2.png" alt="" />
+          </div>
+          <div className={`intro-door-right${doorOpening ? ' opening' : ''}`}>
+            <img src="/images/ui/entryway2.png" alt="" />
+          </div>
+          {!doorOpening && <div className="intro-prompt">Click to Enter</div>}
         </div>
       )}
 
-      <nav className="nav">
-        {SILHOUETTES.map(s => (
-          <button
-            key={s.id}
-            className={current?.id === s.id ? 'active' : ''}
-            style={
-              current?.id === s.id
-                ? ({ '--accent': s.accentColor } as React.CSSProperties)
-                : undefined
-            }
-            onClick={() => handleNav(s.id)}
-          >
-            {s.title}
-          </button>
-        ))}
-      </nav>
+      <div className="brand-label">AIR FAIR</div>
 
-      {current && (
-        <SneakerRoom
-          current={current}
-          onClose={handleClose}
-          onPEChange={(pe) => handlePEChange(current.id, pe.playerImage)}
-        />
+      {/* All gallery UI — hidden until user enters */}
+      {phase === 'gallery' && (
+        <>
+          {api && (
+            <div className="zoom-controls">
+              <button className="zoom-btn" onClick={() => adjustZoom(-1.2)} aria-label="Zoom in">+</button>
+              <button className="zoom-btn" onClick={() => adjustZoom(1.2)} aria-label="Zoom out">−</button>
+            </div>
+          )}
+
+          <nav className="nav">
+            {SILHOUETTES.map(s => (
+              <button
+                key={s.id}
+                className={current?.id === s.id ? 'active' : ''}
+                style={
+                  current?.id === s.id
+                    ? ({ '--accent': s.accentColor } as React.CSSProperties)
+                    : undefined
+                }
+                onClick={() => handleNav(s.id)}
+              >
+                {s.title}
+              </button>
+            ))}
+          </nav>
+
+          {current && (
+            <SneakerRoom
+              current={current}
+              onClose={handleClose}
+              onPEChange={(pe) => handlePEChange(current.id, pe.playerImage)}
+            />
+          )}
+        </>
       )}
     </>
   );

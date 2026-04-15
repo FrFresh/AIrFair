@@ -96,6 +96,7 @@ function makeDisplayTexture(number: string, year: number, accent: string): THREE
   return new THREE.CanvasTexture(canvas);
 }
 
+
 /**
  * Load a shoe product shot, remove the white background, return as texture.
  * Uses a brightness + saturation threshold to strip studio white BGs
@@ -207,9 +208,6 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
   const clickableMeshes = useRef<THREE.Mesh[]>([]);
 
   // ── Callback refs ─────────────────────────────────────────────────────────
-  // Store callbacks in refs so the scene effect never needs to re-run when
-  // the parent re-renders with new inline function references. The scene is
-  // built ONCE; the refs always hold the latest version of each callback.
   const onReadyRef  = useRef(onReady);
   const onSelectRef = useRef(onSelect);
   useEffect(() => { onReadyRef.current  = onReady;  }, [onReady]);
@@ -225,12 +223,12 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0d0d0d);
-    scene.fog = new THREE.Fog(0x0d0d0d, 18, 32);
+    scene.fog = new THREE.Fog(0x0d0d0d, 26, 42);
 
-    // Camera
+    // Camera — starts at gallery entrance looking at the shoes
     const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    camera.position.set(0, 2, 9);
-    camera.lookAt(0, 0.5, 0);
+    camera.position.set(0, 1.8, 7);
+    camera.lookAt(0, 1.4, 0);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -249,18 +247,17 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     scene.environment = envTex;
     pmrem.dispose();
 
-    // ── Environment ──────────────────────────────────────────────
+    // ── Gallery environment ──────────────────────────────────────
 
-    // Floor
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(40, 20),
-      new THREE.MeshStandardMaterial({ color: 0x1c1c1c, metalness: 0.35, roughness: 0.7 })
-    );
+    // Floor — gallery only
+    const floorMat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, metalness: 0.35, roughness: 0.7 });
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 20), floorMat);
     floor.rotation.x = -Math.PI / 2;
+    floor.position.set(0, 0, 0);
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Back wall
+    // Gallery back wall
     const backWall = new THREE.Mesh(
       new THREE.PlaneGeometry(40, 12),
       new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.9 })

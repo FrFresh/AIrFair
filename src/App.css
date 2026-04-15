@@ -375,6 +375,87 @@
   color: rgba(255, 255, 255, 0.18);
 }
 
+/* ── Intro entrance screen ── */
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  cursor: pointer;
+  background: #000;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  transition: opacity 0.6s ease;
+}
+
+.intro-screen.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Door panels — each covers one half of the viewport */
+.intro-door-left,
+.intro-door-right {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: transform 1.2s cubic-bezier(0.7, 0, 0.3, 1);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.intro-door-left {
+  left: 0;
+  transform-origin: left center;
+}
+
+.intro-door-right {
+  right: 0;
+  transform-origin: right center;
+}
+
+/* The image inside each panel is full-viewport-sized; overflow:hidden clips it */
+.intro-door-left img,
+.intro-door-right img {
+  position: absolute;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  pointer-events: none;
+}
+
+.intro-door-left img  { left: 0; }
+.intro-door-right img { right: 0; }
+
+/* Swing open on click */
+.intro-door-left.opening  { transform: rotateY(-95deg); }
+.intro-door-right.opening { transform: rotateY(95deg); }
+
+.intro-prompt {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  animation: promptPulse 2.4s ease-in-out infinite;
+  z-index: 1;
+}
+
+@keyframes promptPulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.85; }
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .museum-panel {
