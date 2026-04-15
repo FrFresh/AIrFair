@@ -24,6 +24,7 @@ type Props = {
     updatePlacard: (shoeId: string, imageUrl?: string) => void;
   }) => void;
   onSelect?: (id: string) => void;
+  onSwipe?: (direction: 'left' | 'right') => void;
 };
 
 // Maps shoe mesh uuid → silhouette id for click detection
@@ -202,7 +203,7 @@ function loadCinematicTexture(
   }, undefined, onError);
 }
 
-export default function ThreeMuseum({ onReady, onSelect }: Props) {
+export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
   const clickableMeshes = useRef<THREE.Mesh[]>([]);
@@ -210,8 +211,10 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
   // ── Callback refs ─────────────────────────────────────────────────────────
   const onReadyRef  = useRef(onReady);
   const onSelectRef = useRef(onSelect);
+  const onSwipeRef  = useRef(onSwipe);
   useEffect(() => { onReadyRef.current  = onReady;  }, [onReady]);
   useEffect(() => { onSelectRef.current = onSelect; }, [onSelect]);
+  useEffect(() => { onSwipeRef.current  = onSwipe;  }, [onSwipe]);
 
   useEffect(() => {
     const container = containerRef.current!;
@@ -524,6 +527,75 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
     };
     container.addEventListener('click', handleClick);
 
+    // ── Touch input ──────────────────────────────────────────────
+
+    const ZOOM_MIN_T = 1.0;
+    const ZOOM_MAX_T = 9.0;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let lastPinchDist = 0;
+    let touchMoved = false;
+
+    const getPinchDist = (touches: TouchList) => {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.hypot(dx, dy);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchMoved = false;
+      } else if (e.touches.length === 2) {
+        lastPinchDist = getPinchDist(e.touches);
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault(); // prevent browser zoom
+        const dist = getPinchDist(e.touches);
+        const delta = (lastPinchDist - dist) * 0.04;
+        lastPinchDist = dist;
+        camera.position.z = Math.max(ZOOM_MIN_T, Math.min(ZOOM_MAX_T, camera.position.z + delta));
+      } else if (e.touches.length === 1) {
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 10 || dy > 10) touchMoved = true;
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length !== 1) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+
+      if (!touchMoved) {
+        // Tap → raycast for shoe selection
+        const rect = container.getBoundingClientRect();
+        pointer.x = ((touch.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((touch.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObjects(clickableMeshes.current);
+        if (hits.length > 0) {
+          const id = shoeMap.get(hits[0].object.uuid);
+          if (id && onSelectRef.current) onSelectRef.current(id);
+        }
+      } else if (absDx > 55 && absDx > absDy * 1.5) {
+        // Horizontal swipe → cycle shoes
+        onSwipeRef.current?.(dx < 0 ? 'left' : 'right');
+      }
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
     // ── Resize ───────────────────────────────────────────────────
 
     const onResize = () => {
@@ -578,6 +650,9 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
       cancelAnimationFrame(animationRef.current!);
       window.removeEventListener('resize', onResize);
       container.removeEventListener('click', handleClick);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
       renderer.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -596,6 +671,8 @@ export default function ThreeMuseum({ onReady, onSelect }: Props) {
         inset: 0,
         zIndex: 0,
         cursor: 'pointer',
+        touchAction: 'none',
+        userSelect: 'none',
       }}
     />
   );

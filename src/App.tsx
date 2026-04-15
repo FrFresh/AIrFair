@@ -36,8 +36,9 @@ export default function App() {
   const [doorOpening, setDoorOpening] = useState(false);
   const [introFading, setIntroFading] = useState(false);
 
-  // Keep a ref so stable callbacks (useCallback []) can always read the latest api
-  const apiRef = useRef<SceneApi | null>(null);
+  // Keep refs so stable callbacks (useCallback []) can always read latest state
+  const apiRef     = useRef<SceneApi | null>(null);
+  const currentRef = useRef<Silhouette | null>(null);
 
   const scrimRef  = useRef<ProjectionScrimHandle>(null);
   const panelsRef = useRef<RevealPanelsHandle>(null);
@@ -51,6 +52,7 @@ export default function App() {
     const silhouette = SILHOUETTES.find(s => s.id === id);
     if (!silhouette || !apiRef.current) return;
     setCurrent(silhouette);
+    currentRef.current = silhouette;
     moveCameraTo(apiRef.current.camera, silhouette.id);
     applyAtmosphere(apiRef.current.scene, silhouette.accentColor);
     // Show first PE's player photo (or default canvas if none)
@@ -74,10 +76,21 @@ export default function App() {
 
   const handleClose = useCallback(() => {
     setCurrent(null);
+    currentRef.current = null;
     if (apiRef.current) {
       moveCameraTo(apiRef.current.camera, 'entrance');
       resetAtmosphere(apiRef.current.scene);
     }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Swipe left/right cycles through shoes — used by ThreeMuseum's touch handler
+  const handleSwipe = useCallback((direction: 'left' | 'right') => {
+    const ids = SILHOUETTES.map(s => s.id);
+    const idx = currentRef.current ? ids.indexOf(currentRef.current.id) : -1;
+    const next = direction === 'left'
+      ? ids[(idx + 1) % ids.length]
+      : ids[(idx - 1 + ids.length) % ids.length];
+    handleNav(next);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Zoom ─────────────────────────────────────────────────────────────────
@@ -135,6 +148,7 @@ export default function App() {
       <ThreeMuseum
         onReady={setApi}
         onSelect={handleNav}
+        onSwipe={handleSwipe}
       />
 
       {/* ── Showcase overlays ───────────────────────────────────────────── */}
@@ -220,6 +234,11 @@ export default function App() {
               onClose={handleClose}
               onPEChange={(pe) => handlePEChange(current.id, pe.playerImage)}
             />
+          )}
+
+          {/* Swipe hint — only visible on touch devices via CSS media query */}
+          {!current && (
+            <div className="swipe-hint">← swipe to explore →</div>
           )}
         </>
       )}
