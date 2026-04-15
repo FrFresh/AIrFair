@@ -2,10 +2,12 @@ import { PerspectiveCamera, Vector3 } from 'three';
 import gsap from 'gsap';
 
 const targets: Record<string, { pos: Vector3; look: Vector3 }> = {
-  entrance: { pos: new Vector3(0, 1.6, 6), look: new Vector3(0, 1.2, 0) },
-  aj1: { pos: new Vector3(-4, 1.6, 2), look: new Vector3(-4, 1.2, 0) },
-  aj3: { pos: new Vector3(0, 1.6, 2), look: new Vector3(0, 1.2, 0) },
-  aj12: { pos: new Vector3(4, 1.6, 2), look: new Vector3(4, 1.2, 0) }
+  entrance: { pos: new Vector3(0, 1.8, 7), look: new Vector3(0, 1.4, 0) },
+  // Pulled back to z=4.5 so the full panel (4.8 units tall) is visible,
+  // look target raised to y=2.2 to center on the player image.
+  aj1:  { pos: new Vector3(-4, 2.0, 4.5), look: new Vector3(-4, 2.2, -0.8) },
+  aj3:  { pos: new Vector3(0,  2.0, 4.5), look: new Vector3(0,  2.2, -0.8) },
+  aj12: { pos: new Vector3(4,  2.0, 4.5), look: new Vector3(4,  2.2, -0.8) },
 };
 
 export function moveCameraTo(

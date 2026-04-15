@@ -8,6 +8,8 @@ export type PE = {
   year: number;
   colorway: string;
   summary: string;
+  /** Path under /public, e.g. "/images/athletes/carmelo-aj1.jpg" */
+  playerImage?: string;
 };
 
 export type Silhouette = {
@@ -24,6 +26,8 @@ export type Silhouette = {
   showcaseMode: ShowcaseMode;
   videoPath?: string;
   reference?: string;
+  /** Path under /public, e.g. "/images/shoes/aj1.png" — transparent PNG works best */
+  shoeImage?: string;
   // legacy compat
   pe: { athlete: string; peName: string; year?: number; summary: string };
 };
@@ -39,6 +43,7 @@ export const SILHOUETTES: Silhouette[] = [
     accentColor: '#D31F30',
     shoeColor: '#D31F30',
     showcaseMode: ShowcaseMode.Scrim,
+    modelPath: '/models/aj1/scene.gltf',
     pe: { athlete: 'Carmelo Anthony', peName: 'Melo PE', year: 2003, summary: '' },
     pes: [
       {
@@ -81,6 +86,7 @@ export const SILHOUETTES: Silhouette[] = [
     accentColor: '#aaaaaa',
     shoeColor: '#e8e4de',
     showcaseMode: ShowcaseMode.Panels,
+    modelPath: '/models/aj3/scene.gltf',
     pe: { athlete: 'Kobe Bryant', peName: 'Kobe PE', year: 2002, summary: '' },
     pes: [
       {
@@ -89,6 +95,7 @@ export const SILHOUETTES: Silhouette[] = [
         year: 2002,
         colorway: 'White / Gold / Purple',
         summary: 'Before Kobe had his own signature line, Jordan Brand laced him in this Lakers-colorway AJ3 PE. A rare artifact from the peak of his first three-peat run. One of the most coveted PEs ever created.',
+        playerImage: '/images/athletes/kobe-aj3.png',
       },
       {
         athlete: 'Quentin Richardson',
@@ -111,6 +118,14 @@ export const SILHOUETTES: Silhouette[] = [
         colorway: 'Miami Red / Black / White',
         summary: 'Before D-Wade had his own line, Jordan Brand outfitted the rookie in this Heat-themed AJ3 PE. A glimpse of the Flash before the whole world knew his name.',
       },
+      {
+        athlete: 'Russell Westbrook',
+        peName: 'Westbrook OKC PE',
+        year: 2012,
+        colorway: 'Thunder Blue / Orange / White',
+        summary: 'A Jordan Brand cornerstone, Westbrook received this AJ3 PE in Oklahoma City\'s signature blue and orange during one of the most explosive offensive seasons in Thunder history. Russ in full flight — unstoppable.',
+        playerImage: '/images/athletes/westbrook-aj3.jpg',
+      },
     ],
   },
   {
@@ -123,8 +138,7 @@ export const SILHOUETTES: Silhouette[] = [
     accentColor: '#006534',
     shoeColor: '#f0f0f0',
     showcaseMode: ShowcaseMode.Lightbox,
-    // Model file: drop /public/models/aj12-ray-allen.glb to enable 3D lightbox view
-    modelPath: '/models/aj12-ray-allen.glb',
+    modelPath: '/models/aj12/scene.gltf',
     pe: { athlete: 'Ray Allen', peName: 'Sugar Ray PE', year: 2008, summary: '' },
     pes: [
       {
@@ -133,6 +147,7 @@ export const SILHOUETTES: Silhouette[] = [
         year: 2008,
         colorway: 'White / Celtics Green / Black',
         summary: 'Ray Allen signed with Jordan Brand early in his career and accumulated more PEs than nearly any player in the brand\'s history. This white and Celtics green AJ12 was worn during Boston\'s 2007–08 championship run — the season Allen, Paul Pierce, and Kevin Garnett formed the Big Three. Clean colorway. Cleaner jump shot. Banner season.',
+        playerImage: '/images/athletes/ray-allen-aj12.jpg',
       },
       {
         athlete: 'Ray Allen',
@@ -154,6 +169,7 @@ export const SILHOUETTES: Silhouette[] = [
         year: 2004,
         colorway: 'Black / Gold / White',
         summary: 'Fresh off a historic rookie year in Denver, Melo received this sleek black and gold AJ12 PE in his second season. Already a cornerstone of the Jordan Brand family before turning 21 — the gold accents nodding to his Olympic and Syracuse bloodlines.',
+        playerImage: '/images/athletes/carmelo-aj12.jpg',
       },
       {
         athlete: 'Mike Bibby',

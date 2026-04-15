@@ -5,6 +5,7 @@ import { ShowcaseMode } from '../types/showcase';
 type Props = {
   current: Silhouette;
   onClose?: () => void;
+  onPEChange?: (pe: PE) => void;
 };
 
 const MODE_LABEL: Record<ShowcaseMode, string> = {
@@ -13,13 +14,20 @@ const MODE_LABEL: Record<ShowcaseMode, string> = {
   [ShowcaseMode.Lightbox]: 'Lightbox Edition',
 };
 
-export default function SneakerRoom({ current, onClose }: Props) {
+export default function SneakerRoom({ current, onClose, onPEChange }: Props) {
   const [activePE, setActivePE] = useState<PE>(current.pes[0]);
 
-  // Reset to first PE when shoe changes
+  // Reset to first PE when shoe changes; notify parent to update placard
   useEffect(() => {
-    setActivePE(current.pes[0]);
-  }, [current.id]);
+    const first = current.pes[0];
+    setActivePE(first);
+    onPEChange?.(first);
+  }, [current.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selectPE = (pe: PE) => {
+    setActivePE(pe);
+    onPEChange?.(pe);
+  };
 
   return (
     <div className="museum-panel">
@@ -61,7 +69,7 @@ export default function SneakerRoom({ current, onClose }: Props) {
           <button
             key={pe.athlete}
             className={`pe-tab ${activePE.athlete === pe.athlete ? 'active' : ''}`}
-            onClick={() => setActivePE(pe)}
+            onClick={() => selectPE(pe)}
             style={{ '--accent': current.accentColor } as React.CSSProperties}
           >
             {pe.athlete.split(' ').pop()}
@@ -71,6 +79,20 @@ export default function SneakerRoom({ current, onClose }: Props) {
 
       {/* Active PE card */}
       <div className="pe-card">
+        {/* Player photo */}
+        <div
+          className="pe-player-photo"
+          style={{ '--accent': current.accentColor } as React.CSSProperties}
+        >
+          {activePE.playerImage ? (
+            <img src={activePE.playerImage} alt={`${activePE.athlete} wearing ${activePE.peName}`} />
+          ) : (
+            <div className="pe-player-photo-placeholder">
+              <span>{activePE.athlete}</span>
+            </div>
+          )}
+        </div>
+
         <div className="pe-card-header">
           <div>
             <div className="pe-name">{activePE.peName}</div>

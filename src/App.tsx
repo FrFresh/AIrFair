@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
+import gsap from 'gsap';
 import ThreeMuseum from './components/ThreeMuseum';
 import SneakerRoom from './components/SneakerRoom';
 import ProjectionScrim, { ProjectionScrimHandle } from './components/ProjectionScrim';
@@ -18,11 +19,14 @@ import './App.css';
  * and mount LightboxPE into that scene instead.
  */
 
+type SneakerOpts = { displayNumber?: string; year?: number; shoeImage?: string; modelPath?: string };
+
 type SceneApi = {
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
   renderer: THREE.WebGLRenderer;
-  addSneaker: (x: number, p?: string, s?: string, a?: string) => THREE.Mesh;
+  addSneaker: (x: number, p?: string, s?: string, a?: string, opts?: SneakerOpts) => THREE.Object3D;
+  updatePlacard: (shoeId: string, imageUrl?: string) => void;
 };
 
 export default function App() {
@@ -40,13 +44,19 @@ export default function App() {
   // onSelect won't trigger a scene rebuild when the parent re-renders.
   // apiRef always holds the latest api even with empty deps.
 
-  const handleNav = useCallback((id: 'aj1' | 'aj3' | 'aj12') => {
+  const handleNav = useCallback((id: string) => {
     const silhouette = SILHOUETTES.find(s => s.id === id);
     if (!silhouette || !apiRef.current) return;
     setCurrent(silhouette);
-    moveCameraTo(apiRef.current.camera, id);
+    moveCameraTo(apiRef.current.camera, silhouette.id);
     applyAtmosphere(apiRef.current.scene, silhouette.accentColor);
+    // Show first PE's player photo (or default canvas if none)
+    apiRef.current.updatePlacard(silhouette.id, silhouette.pes[0]?.playerImage);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePEChange = useCallback((shoeId: string, imageUrl?: string) => {
+    apiRef.current?.updatePlacard(shoeId, imageUrl);
+  }, []);
 
   const handleClose = useCallback(() => {
     setCurrent(null);
@@ -56,6 +66,28 @@ export default function App() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Zoom ─────────────────────────────────────────────────────────────────
+  const ZOOM_MIN = 1.0;
+  const ZOOM_MAX = 9.0;
+
+  const adjustZoom = useCallback((delta: number) => {
+    const cam = apiRef.current?.camera;
+    if (!cam) return;
+    const newZ = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, cam.position.z + delta));
+    gsap.to(cam.position, { z: newZ, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
+  }, []);
+
+  // Scroll-wheel zoom — active whenever the scene is ready
+  useEffect(() => {
+    if (!api) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      adjustZoom(e.deltaY * 0.006);
+    };
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [api, adjustZoom]);
+
   // ── Place shoes when Three.js scene is ready ─────────────────────────────
 
   useEffect(() => {
@@ -64,7 +96,12 @@ export default function App() {
 
     SILHOUETTES.forEach((s, i) => {
       const x = [-4, 0, 4][i];
-      const shoe = api.addSneaker(x, s.pedestalColor, s.shoeColor, s.accentColor);
+      const shoe = api.addSneaker(x, s.pedestalColor, s.shoeColor, s.accentColor, {
+        displayNumber: s.title.split(' ').pop() ?? '',
+        year: s.year,
+        shoeImage: s.shoeImage,
+        modelPath: s.modelPath,
+      });
       const startY = shoe.position.y;
       const loop = () => {
         shoe.rotation.y += 0.005;
@@ -122,6 +159,14 @@ export default function App() {
       {/* ── UI layer ────────────────────────────────────────────────────── */}
       <div className="brand-label">AIR FAIR</div>
 
+      {/* Zoom controls — visible when scene is ready */}
+      {api && (
+        <div className="zoom-controls">
+          <button className="zoom-btn" onClick={() => adjustZoom(-1.2)} aria-label="Zoom in">+</button>
+          <button className="zoom-btn" onClick={() => adjustZoom(1.2)} aria-label="Zoom out">−</button>
+        </div>
+      )}
+
       <nav className="nav">
         {SILHOUETTES.map(s => (
           <button
@@ -143,6 +188,7 @@ export default function App() {
         <SneakerRoom
           current={current}
           onClose={handleClose}
+          onPEChange={(pe) => handlePEChange(current.id, pe.playerImage)}
         />
       )}
     </>

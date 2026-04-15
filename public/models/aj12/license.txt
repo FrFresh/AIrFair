@@ -1,0 +1,11 @@
+Model Information:
+* title:	Jordan 12 Retro Cherry
+* source:	https://sketchfab.com/3d-models/jordan-12-retro-cherry-174ed61d8cd04c9596f2654f79c0acd7
+* author:	ShoesPlug (https://sketchfab.com/ShoesPlug)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Jordan 12 Retro Cherry" (https://sketchfab.com/3d-models/jordan-12-retro-cherry-174ed61d8cd04c9596f2654f79c0acd7) by ShoesPlug (https://sketchfab.com/ShoesPlug) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
