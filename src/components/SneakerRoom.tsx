@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Silhouette, PE } from '../data/silhouettes';
-import { ShowcaseMode } from '../types/showcase';
 
 type Props = {
   current: Silhouette;
@@ -8,12 +7,6 @@ type Props = {
   onPEChange?: (pe: PE) => void;
   onPrev?: () => void;
   onNext?: () => void;
-};
-
-const MODE_LABEL: Record<ShowcaseMode, string> = {
-  [ShowcaseMode.Scrim]:    'Projection Scrim',
-  [ShowcaseMode.Panels]:   'Reveal Panels',
-  [ShowcaseMode.Lightbox]: 'Lightbox Edition',
 };
 
 export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNext }: Props) {
@@ -56,7 +49,7 @@ export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNe
               className="mode-badge"
               style={{ background: current.accentColor }}
             >
-              {MODE_LABEL[current.showcaseMode]}
+              On Display
             </span>
           </div>
           <h2 className="panel-title">{current.title}</h2>
@@ -131,6 +124,14 @@ export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNe
 
           <div className="pe-card-header">
             <div>
+              {activePE.designer && (
+                <div
+                  className="pe-designer-badge"
+                  style={{ background: current.accentColor }}
+                >
+                  Designer Edition
+                </div>
+              )}
               <div className="pe-name">{activePE.peName}</div>
               <div className="pe-athlete">{activePE.athlete}</div>
             </div>

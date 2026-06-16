@@ -10,6 +10,8 @@ export type PE = {
   summary: string;
   /** Path under /public, e.g. "/images/athletes/carmelo-aj1.jpg" */
   playerImage?: string;
+  /** True for designer collabs (e.g. Virgil) — shows a "Designer Edition" badge. */
+  designer?: boolean;
 };
 
 export type Silhouette = {
@@ -44,35 +46,16 @@ export const SILHOUETTES: Silhouette[] = [
     shoeColor: '#D31F30',
     showcaseMode: ShowcaseMode.Scrim,
     modelPath: '/models/aj1/scene.gltf',
-    pe: { athlete: 'Carmelo Anthony', peName: 'Melo PE', year: 2003, summary: '' },
+    pe: { athlete: 'Virgil Abloh', peName: 'The Ten · Off-White™', year: 2017, summary: '' },
     pes: [
       {
-        athlete: 'Carmelo Anthony',
-        peName: 'Melo PE',
-        year: 2003,
-        colorway: 'Black / Gold',
-        summary: 'A bold PE celebrating Melo\'s arrival as the No. 3 overall pick. The gold accents echoed his Syracuse legacy and the scoring brilliance that would define his 19-year career.',
-      },
-      {
-        athlete: 'Nate Robinson',
-        peName: 'Nate Robinson PE',
-        year: 2006,
-        colorway: 'Black / Royal Blue',
-        summary: 'Three-time Slam Dunk champion Nate Robinson received a custom AJ1 in SuperSonics colorway. At 5\'9", no one flew higher. The shoe matched his fearless, sky-high style perfectly.',
-      },
-      {
-        athlete: 'Spike Lee',
-        peName: 'Mars Blackmon PE',
-        year: 1985,
-        colorway: 'Black / Red',
-        summary: 'Film director and sneaker prophet Spike Lee, as Mars Blackmon, starred alongside MJ in the original Nike ads. His PE is one of the most culturally significant pairs in Jordan history.',
-      },
-      {
-        athlete: 'Jordan Clarkson',
-        peName: 'JC PE',
-        year: 2016,
-        colorway: 'Lakers Gold / Purple',
-        summary: 'Lakers guard Jordan Clarkson brought West Coast royalty energy with this purple and gold AJ1 PE — a nod to the franchise\'s championship bloodline.',
+        athlete: 'Virgil Abloh',
+        peName: 'The Ten · Off-White™ AJ1',
+        year: 2017,
+        colorway: 'White / Black / Cone Red',
+        summary: 'The only designer ever given his own ongoing collection with Nike. For 2017\'s "The Ten," Virgil Abloh deconstructed the Air Jordan 1 down to its bones — exposed foam, a raw Swoosh stitched in relief, the signature Off-White™ zip tie, helvetica "AIR," and hand-scrawled text. It blurred the line between product and art, turned the sneaker into a cultural object, and ignited the entire collaboration era that followed. No single release changed the game for sneakers more.',
+        playerImage: '/images/athletes/virgil-aj1.jpg',
+        designer: true,
       },
     ],
   },

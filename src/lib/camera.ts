@@ -2,13 +2,15 @@ import { PerspectiveCamera, Vector3 } from 'three';
 import gsap from 'gsap';
 
 const targets: Record<string, { pos: Vector3; look: Vector3 }> = {
-  lobby:    { pos: new Vector3(0, 2.0, 16), look: new Vector3(0, 1.8, 8) },
-  entrance: { pos: new Vector3(0, 1.8, 7),  look: new Vector3(0, 1.4, 0) },
-  // Pulled back to z=4.5 so the full panel (4.8 units tall) is visible,
-  // look target raised to y=2.2 to center on the player image.
-  aj1:  { pos: new Vector3(-4, 2.0, 4.5), look: new Vector3(-4, 2.2, -0.8) },
-  aj3:  { pos: new Vector3(0,  2.0, 4.5), look: new Vector3(0,  2.2, -0.8) },
-  aj12: { pos: new Vector3(4,  2.0, 4.5), look: new Vector3(4,  2.2, -0.8) },
+  lobby:    { pos: new Vector3(0, 3.2, 22), look: new Vector3(0, 2.6, 8) },
+  // Wide establishing shot — pulled back to take in the vast open hall,
+  // the three pedestals (x = ±8) and the tall hanging banners behind them.
+  entrance: { pos: new Vector3(0, 3.8, 17), look: new Vector3(0, 3.4, -3) },
+  // Per-shoe: camera sits in front of each pedestal at eye level, framing
+  // the shoe in the foreground with its ceiling-hung banner rising behind.
+  aj1:  { pos: new Vector3(-8, 3.4, 7.5), look: new Vector3(-8, 4.0, -2.8) },
+  aj3:  { pos: new Vector3(0,  3.4, 7.5), look: new Vector3(0,  4.0, -2.8) },
+  aj12: { pos: new Vector3(8,  3.4, 7.5), look: new Vector3(8,  4.0, -2.8) },
 };
 
 export function moveCameraTo(

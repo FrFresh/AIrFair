@@ -317,6 +317,18 @@
   margin-bottom: 12px;
 }
 
+.pe-designer-badge {
+  display: inline-block;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 50px;
+  margin-bottom: 6px;
+}
+
 .pe-name {
   font-size: 0.95rem;
   font-weight: 700;
@@ -455,6 +467,50 @@
   color: rgba(255, 255, 255, 0.18);
 }
 
+/* ── Welcome splash (shown before the doors) ── */
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 210;
+  cursor: pointer;
+  background: #000 url('/images/ui/entryway.png') center / cover no-repeat;
+  transition: opacity 0.6s ease;
+}
+
+.welcome-screen.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.welcome-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Italianno', cursive;
+  font-weight: 400;
+  letter-spacing: 1px;
+  line-height: 0.9;
+  color: rgba(186, 185, 179, 0.75); /* warm off-white, ~25% darker total */
+  text-align: center;
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 1;
+  animation: promptPulse 2.4s ease-in-out infinite;
+}
+
+.welcome-title-sm {
+  font-size: clamp(2.4rem, 7.2vw, 4.8rem);
+}
+
+.welcome-title-lg {
+  font-size: clamp(5.4rem, 18vw, 13.2rem);
+}
+
 /* ── Intro entrance screen ── */
 .intro-screen {
   position: fixed;
@@ -516,7 +572,8 @@
 .intro-door-left.opening  { transform: rotateY(-95deg); }
 .intro-door-right.opening { transform: rotateY(95deg); }
 
-.intro-prompt {
+.intro-prompt,
+.welcome-prompt {
   position: absolute;
   bottom: 48px;
   left: 50%;
@@ -534,6 +591,12 @@
 @keyframes promptPulse {
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 0.85; }
+}
+
+/* On the welcome splash, sit the prompt in the slit between the Jumpman's legs */
+.welcome-prompt {
+  top: 76%;
+  bottom: auto;
 }
 
 /* Swipe hint hidden on desktop — shown only in mobile media query */

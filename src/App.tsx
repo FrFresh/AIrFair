@@ -3,10 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import ThreeMuseum from './components/ThreeMuseum';
 import SneakerRoom from './components/SneakerRoom';
-import ProjectionScrim, { ProjectionScrimHandle } from './components/ProjectionScrim';
-import RevealPanels, { RevealPanelsHandle } from './components/RevealPanels';
 import { SILHOUETTES, Silhouette } from './data/silhouettes';
-import { ShowcaseMode } from './types/showcase';
 import { moveCameraTo } from './lib/camera';
 import './App.css';
 
@@ -35,13 +32,12 @@ export default function App() {
   const [phase, setPhase] = useState<'intro' | 'gallery'>('intro');
   const [doorOpening, setDoorOpening] = useState(false);
   const [introFading, setIntroFading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [welcomeFading, setWelcomeFading] = useState(false);
 
   // Keep refs so stable callbacks (useCallback []) can always read latest state
   const apiRef     = useRef<SceneApi | null>(null);
   const currentRef = useRef<Silhouette | null>(null);
-
-  const scrimRef  = useRef<ProjectionScrimHandle>(null);
-  const panelsRef = useRef<RevealPanelsHandle>(null);
 
   // ── Navigation ───────────────────────────────────────────────────────────
   // useCallback with [] so the reference never changes — ThreeMuseum's
@@ -63,16 +59,19 @@ export default function App() {
     apiRef.current?.updatePlacard(shoeId, imageUrl);
   }, []);
 
-  const handleIntroClick = useCallback(() => {
-    if (doorOpening) return;
-    setDoorOpening(true);
-    // Doors swing open (1.2s), then frame fades out, then gallery loads
-    setTimeout(() => setIntroFading(true), 1100);
+  // One gesture: clicking the welcome both fades it out AND swings the doors
+  // open at the same time, then the frame fades and the gallery loads.
+  const handleWelcomeClick = useCallback(() => {
+    if (welcomeFading) return;
+    setWelcomeFading(true);   // welcome dissolves (0.6s) …
+    setDoorOpening(true);     // … revealing the doors already swinging open (1.2s)
+    setTimeout(() => setShowWelcome(false), 600);   // remove the faded welcome
+    setTimeout(() => setIntroFading(true), 1300);    // fade the door frame after they open
     setTimeout(() => {
       setPhase('gallery');
       handleNav('aj1');
-    }, 1700);
-  }, [doorOpening]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, 1900);
+  }, [welcomeFading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleClose = useCallback(() => {
     setCurrent(null);
@@ -122,7 +121,7 @@ export default function App() {
     apiRef.current = api; // sync ref whenever state updates
 
     SILHOUETTES.forEach((s, i) => {
-      const x = [-4, 0, 4][i];
+      const x = [-8, 0, 8][i];
       const shoe = api.addSneaker(x, s.pedestalColor, s.shoeColor, s.accentColor, {
         displayNumber: s.title.split(' ').pop() ?? '',
         year: s.year,
@@ -151,51 +150,38 @@ export default function App() {
         onSwipe={handleSwipe}
       />
 
-      {/* ── Showcase overlays ───────────────────────────────────────────── */}
-
-      {/* AJ1 — Scrim: translucent colored curtain added to the 3D scene */}
-      {api && current?.showcaseMode === ShowcaseMode.Scrim && (
-        <ProjectionScrim
-          ref={scrimRef}
-          src={current.videoPath ?? ''}
-          fallbackColor={current.accentColor}
-          scene={api.scene}
-          position={[-4, 1.5, -0.8]}
-          size={{ w: 3.2, h: 2.4 }}
-          auto
-        />
-      )}
-
-      {/* AJ3 — Panels: three sliding glass panels in the 3D scene */}
-      {api && current?.showcaseMode === ShowcaseMode.Panels && (
-        <RevealPanels
-          ref={panelsRef}
-          videoSrc={current.videoPath ?? ''}
-          fallbackColor={current.accentColor}
-          scene={api.scene}
-          camera={api.camera}
-          currentId={current.id}
-        />
-      )}
-
-      {/* AJ12 — Lightbox: scene atmosphere (green tint) is applied via
-          applyAtmosphere(). Full LightboxPE requires /public/models/aj12-ray-allen.glb
-          and a dedicated renderer — see note at top of file. */}
+      {/* Per-shoe atmosphere tint is applied via applyAtmosphere() in handleNav.
+          The old Scrim/Panels showcase overlays were removed — they only drew
+          flat fallback color planes (no video assets) that cluttered the scene. */}
 
       {/* ── UI layer ────────────────────────────────────────────────────── */}
-      {/* ── Intro entrance screen — animated doors ──────────────── */}
-      {phase === 'intro' && (
+      {/* ── Welcome splash — shown before the doors ──────────────── */}
+      {phase === 'intro' && showWelcome && (
         <div
-          className={`intro-screen${introFading ? ' fading' : ''}`}
-          onClick={handleIntroClick}
+          className={`welcome-screen${welcomeFading ? ' fading' : ''}`}
+          onClick={handleWelcomeClick}
         >
+          <h1 className="welcome-title">
+            <span className="welcome-title-sm">Welcome to</span>
+            <span className="welcome-title-lg">Air Fair</span>
+          </h1>
+          <div className="welcome-prompt">Click to Enter</div>
+        </div>
+      )}
+
+      {/* ── Intro entrance screen — animated doors ──────────────────
+          Rendered for the whole intro phase so the doors sit UNDERNEATH
+          the welcome splash (welcome z210 > doors z200). When the welcome
+          fades it reveals the doors, not the 3D interior. Door clicks are
+          disabled until the welcome is gone. */}
+      {phase === 'intro' && (
+        <div className={`intro-screen${introFading ? ' fading' : ''}`}>
           <div className={`intro-door-left${doorOpening ? ' opening' : ''}`}>
             <img src="/images/ui/entryway2.png" alt="" />
           </div>
           <div className={`intro-door-right${doorOpening ? ' opening' : ''}`}>
             <img src="/images/ui/entryway2.png" alt="" />
           </div>
-          {!doorOpening && <div className="intro-prompt">Click to Enter</div>}
         </div>
       )}
 
@@ -253,14 +239,14 @@ export default function App() {
 /** Tint scene background ~6% toward the shoe's accent color for identity. */
 function applyAtmosphere(scene: THREE.Scene, accentHex: string) {
   const accent = new THREE.Color(accentHex);
-  const base   = new THREE.Color(0x0d0d0d);
+  const base   = new THREE.Color(0x140f0a);
   const tinted = base.clone().lerp(accent, 0.06);
   scene.background = tinted;
   if (scene.fog) (scene.fog as THREE.Fog).color.copy(tinted);
 }
 
 function resetAtmosphere(scene: THREE.Scene) {
-  const base = new THREE.Color(0x0d0d0d);
+  const base = new THREE.Color(0x140f0a);
   scene.background = base;
   if (scene.fog) (scene.fog as THREE.Fog).color.copy(base);
 }

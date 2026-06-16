@@ -203,6 +203,99 @@ function loadCinematicTexture(
   }, undefined, onError);
 }
 
+/**
+ * Procedural dark hardwood floor — long straight espresso planks running
+ * front-to-back, with vertical grain, staggered butt joints and beveled
+ * seam shadows. Matches the satin walnut floor of a gallery hall.
+ */
+function makeWoodFloorTexture(): THREE.CanvasTexture {
+  const W = 512, H = 1024;   // tall so planks read long
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#1c1009';
+  ctx.fillRect(0, 0, W, H);
+
+  const planks = 6;
+  const pw = W / planks;
+  const shades = ['#3a2417', '#2e1b10', '#43291a', '#34200f', '#3f2616', '#2a190d'];
+
+  for (let i = 0; i < planks; i++) {
+    const x = i * pw;
+    ctx.fillStyle = shades[i % shades.length];
+    ctx.fillRect(x, 0, pw, H);
+
+    // dark vertical grain streaks
+    ctx.strokeStyle = 'rgba(0,0,0,0.16)';
+    ctx.lineWidth = 1;
+    for (let g = 4; g < pw; g += 7) {
+      const gx = x + g;
+      ctx.beginPath();
+      ctx.moveTo(gx + Math.sin(g) * 1.5, 0);
+      ctx.lineTo(gx - Math.sin(g) * 1.5, H);
+      ctx.stroke();
+    }
+    // faint warm grain highlights
+    ctx.strokeStyle = 'rgba(255,210,160,0.05)';
+    for (let g = 8; g < pw; g += 13) {
+      ctx.beginPath();
+      ctx.moveTo(x + g, 0);
+      ctx.lineTo(x + g, H);
+      ctx.stroke();
+    }
+    // staggered butt joint across this plank
+    const jointY = (i * 311) % H;
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, jointY); ctx.lineTo(x + pw, jointY); ctx.stroke();
+
+    // plank seam — shadow on left edge, faint highlight on right
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,220,170,0.06)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x + 1.5, 0); ctx.lineTo(x + 1.5, H); ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * Procedural matte plaster — warm greige gallery wall paint with very
+ * subtle large-scale mottling so it isn't a dead flat color.
+ */
+function makePlasterTexture(): THREE.CanvasTexture {
+  const S = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = S;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = '#d4cabb';      // warm greige
+  ctx.fillRect(0, 0, S, S);
+
+  // gentle mottling — alternating light/dark soft blotches
+  for (let i = 0; i < 150; i++) {
+    const x = (i * 97) % S;
+    const y = (i * 53) % S;
+    const r = 20 + (i % 40);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    const tone = i % 2 === 0 ? '120,108,92' : '255,250,240';
+    g.addColorStop(0, `rgba(${tone},0.018)`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>();
@@ -225,13 +318,13 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0d0d0d);
-    scene.fog = new THREE.Fog(0x0d0d0d, 26, 42);
+    scene.background = new THREE.Color(0x140f0a);
+    scene.fog = new THREE.Fog(0x140f0a, 24, 50);
 
-    // Camera — starts at gallery entrance looking at the shoes
-    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 100);
-    camera.position.set(0, 1.8, 7);
-    camera.lookAt(0, 1.4, 0);
+    // Camera — wide establishing view of the vast open hall
+    const camera = new THREE.PerspectiveCamera(60, W / H, 0.1, 120);
+    camera.position.set(0, 3.8, 17);
+    camera.lookAt(0, 3.4, -3);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -240,7 +333,7 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.4;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
     // ── Environment map — makes PBR materials show correct color ──
@@ -250,50 +343,138 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
     scene.environment = envTex;
     pmrem.dispose();
 
-    // ── Gallery environment ──────────────────────────────────────
+    // ── Gallery environment — vast open exhibition hall ──────────
+    // Side walls pushed far out so the exhibits have air around them;
+    // the portraits hang from the ceiling rather than sit on a wall.
+    const ROOM_X   = 20;         // side walls way out at x = ±20
+    const WALL_H   = 11;         // tall gallery ceiling
+    const BACK_Z   = -9;         // back wall pushed back for depth
+    const FRONT_Z  = 18;         // walls run forward to here (past the camera)
+    const WALL_D   = FRONT_Z - BACK_Z;
+    const MID_Z    = BACK_Z + WALL_D / 2;
+    const SHOE_X   = 8;          // pedestals sit at x = -SHOE_X, 0, +SHOE_X
 
-    // Floor — gallery only
-    const floorMat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, metalness: 0.35, roughness: 0.7 });
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 20), floorMat);
+    // Dark straight-plank hardwood floor (boards run front-to-back)
+    const floorTex = makeWoodFloorTexture();
+    floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+    floorTex.repeat.set(11, 7);
+    floorTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, metalness: 0.1, roughness: 0.4 });
+    // Floor matches the ceiling/wall footprint exactly so the box is aligned
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(2 * ROOM_X, WALL_D), floorMat);
     floor.rotation.x = -Math.PI / 2;
-    floor.position.set(0, 0, 0);
+    floor.position.set(0, 0, MID_Z);
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Gallery back wall
-    const backWall = new THREE.Mesh(
-      new THREE.PlaneGeometry(40, 12),
-      new THREE.MeshStandardMaterial({ color: 0x181818, roughness: 0.9 })
-    );
-    backWall.position.set(0, 5, -4);
+    // Matte plaster gallery walls — one source texture, cloned per wall
+    const wallSrc = makePlasterTexture();
+    const makeWallMat = (rx: number, ry: number) => {
+      const t = wallSrc.clone();
+      t.wrapS = t.wrapT = THREE.RepeatWrapping;
+      t.repeat.set(rx, ry);
+      t.colorSpace = THREE.SRGBColorSpace;
+      t.needsUpdate = true;
+      return new THREE.MeshStandardMaterial({ map: t, metalness: 0.0, roughness: 0.96 });
+    };
+
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(2 * ROOM_X, WALL_H), makeWallMat(7, 2));
+    backWall.position.set(0, WALL_H / 2, BACK_Z);
+    backWall.receiveShadow = true;
     scene.add(backWall);
 
-    // ── Lighting ─────────────────────────────────────────────────
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(WALL_D, WALL_H), makeWallMat(7, 2));
+    leftWall.rotation.y = Math.PI / 2;
+    leftWall.position.set(-ROOM_X, WALL_H / 2, MID_Z);
+    scene.add(leftWall);
 
-    // Ambient — enough to see shapes clearly
-    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(WALL_D, WALL_H), makeWallMat(7, 2));
+    rightWall.rotation.y = -Math.PI / 2;
+    rightWall.position.set(ROOM_X, WALL_H / 2, MID_Z);
+    scene.add(rightWall);
 
-    // Hemisphere: warm sky / cool ground
-    scene.add(new THREE.HemisphereLight(0xfff0e0, 0x223344, 0.6));
+    // Ceiling — warm greige plaster, a touch lighter so the runway reads
+    const ceiling = new THREE.Mesh(
+      new THREE.PlaneGeometry(2 * ROOM_X, WALL_D),
+      new THREE.MeshStandardMaterial({ color: 0x3a352c, roughness: 0.95 })
+    );
+    ceiling.rotation.x = Math.PI / 2;
+    ceiling.position.set(0, WALL_H, MID_Z);
+    scene.add(ceiling);
 
-    // Main overhead spot covering all three pedestals
-    const mainSpot = new THREE.SpotLight(0xffffff, 8, 30, Math.PI / 3.5, 0.3, 1);
-    mainSpot.position.set(0, 10, 6);
+    // ── Trim & recessed lighting ─────────────────────────────────
+    // White painted gallery trim (baseboard + crown)
+    const trimMat = new THREE.MeshStandardMaterial({ color: 0xe8e2d6, metalness: 0.0, roughness: 0.6 });
+    const stripMat = new THREE.MeshStandardMaterial({
+      color: 0xfff0d6, emissive: 0xffd9a0, emissiveIntensity: 2.2,
+    });
+
+    const addBox = (w: number, h: number, d: number, px: number, py: number, pz: number, mat: THREE.Material) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      m.position.set(px, py, pz);
+      m.castShadow = true;
+      m.receiveShadow = true;
+      scene.add(m);
+    };
+
+    // Crown molding just below the ceiling
+    const crownH = 0.28, crownY = WALL_H - crownH / 2;
+    addBox(2 * ROOM_X, crownH, 0.18, 0, crownY, BACK_Z + 0.1, trimMat);
+    addBox(0.18, crownH, WALL_D, -ROOM_X + 0.1, crownY, MID_Z, trimMat);
+    addBox(0.18, crownH, WALL_D,  ROOM_X - 0.1, crownY, MID_Z, trimMat);
+
+    // Baseboard at the floor
+    const baseH = 0.35, baseY = baseH / 2;
+    addBox(2 * ROOM_X, baseH, 0.16, 0, baseY, BACK_Z + 0.08, trimMat);
+    addBox(0.16, baseH, WALL_D, -ROOM_X + 0.08, baseY, MID_Z, trimMat);
+    addBox(0.16, baseH, WALL_D,  ROOM_X - 0.08, baseY, MID_Z, trimMat);
+
+    // ── Central light runway — recessed glowing channel down the hall ──
+    // Its converging lines pull the visitor's eye toward a bright focal
+    // terminus at the far (back) wall.
+    const RUN_LEN = WALL_D;
+
+    // Recessed cove walls flanking the channel (dark, give it depth)
+    const coveMat = new THREE.MeshStandardMaterial({ color: 0x1b1712, roughness: 1 });
+    addBox(0.14, 0.5, RUN_LEN, -0.95, WALL_H - 0.25, MID_Z, coveMat);
+    addBox(0.14, 0.5, RUN_LEN,  0.95, WALL_H - 0.25, MID_Z, coveMat);
+
+    // Glowing light channel down the center
+    addBox(1.5, 0.06, RUN_LEN, 0, WALL_H - 0.1, MID_Z, stripMat);
+
+    // Real light from the runway — warm lamps brightening toward the focal end
+    [13, 8, 3, -2, -7].forEach((rz, i) => {
+      const lamp = new THREE.PointLight(0xffe6bc, 1.0 + i * 0.55, 24);
+      lamp.position.set(0, WALL_H - 0.7, rz);
+      scene.add(lamp);
+    });
+
+    // ── Lighting — warm gallery wash ─────────────────────────────
+    scene.add(new THREE.AmbientLight(0xffe7cc, 0.55));
+    scene.add(new THREE.HemisphereLight(0xffe2c0, 0x241810, 0.5));
+
+    // Main overhead spot washing the central exhibits
+    const mainSpot = new THREE.SpotLight(0xffe6c6, 11, 72, Math.PI / 3, 0.35, 1);
+    mainSpot.position.set(0, 14, 7);
     mainSpot.target.position.set(0, 0, 0);
     mainSpot.castShadow = true;
     mainSpot.shadow.mapSize.set(2048, 2048);
     scene.add(mainSpot);
     scene.add(mainSpot.target);
 
-    // Left fill (AJ1 side)
-    const fillL = new THREE.PointLight(0xffffff, 3, 20);
-    fillL.position.set(-7, 5, 4);
+    // Warm wall-wash fills out toward the distant side walls
+    const fillL = new THREE.PointLight(0xffdcae, 2.8, 48);
+    fillL.position.set(-16, 8, 5);
     scene.add(fillL);
 
-    // Right fill (AJ12 side)
-    const fillR = new THREE.PointLight(0xffffff, 3, 20);
-    fillR.position.set(7, 5, 4);
+    const fillR = new THREE.PointLight(0xffdcae, 2.8, 48);
+    fillR.position.set(16, 8, 5);
     scene.add(fillR);
+
+    // Soft ceiling ambience matching the recessed strips
+    const ceilGlow = new THREE.PointLight(0xffe0b0, 1.8, 34);
+    ceilGlow.position.set(0, 10.2, 2);
+    scene.add(ceilGlow);
 
     // ── Shoe builder ─────────────────────────────────────────────
 
@@ -315,21 +496,22 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
       const shoe3D = new THREE.Color(shoeColor);
       const accent3D = new THREE.Color(accentColor);
 
-      // ── Pedestal ──
+      // ── Plinth — raised matte block so the shoe sits at viewing height ──
+      const PLINTH_H = 1.15;
       const ped = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.7, 0.75, 0.18, 64),
+        new THREE.BoxGeometry(1.7, PLINTH_H, 1.7),
         new THREE.MeshStandardMaterial({
           color: new THREE.Color(pedestalColor),
-          metalness: 0.7,
-          roughness: 0.25,
+          metalness: 0.2,
+          roughness: 0.6,
         })
       );
-      ped.position.set(x, 0.09, 0);
+      ped.position.set(x, PLINTH_H / 2, 0);
       ped.receiveShadow = true;
       ped.castShadow = true;
       scene.add(ped);
 
-      // Glowing accent ring on top of pedestal
+      // Glowing accent ring inset on the plinth top
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.65, 0.03, 12, 64),
         new THREE.MeshStandardMaterial({
@@ -341,7 +523,7 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
         })
       );
       ring.rotation.x = Math.PI / 2;
-      ring.position.set(x, 0.185, 0);
+      ring.position.set(x, PLINTH_H + 0.005, 0);
       scene.add(ring);
 
       // ── Shoe display ─────────────────────────────────────────────
@@ -355,7 +537,7 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
         new THREE.BoxGeometry(2.2, 1.8, 2.8),
         new THREE.MeshBasicMaterial({ transparent: true, opacity: 0 })
       );
-      hitbox.position.set(x, 1.1, 0);
+      hitbox.position.set(x, PLINTH_H + 0.9, 0);
       scene.add(hitbox);
       shoeMap.set(hitbox.uuid, id);
       clickableMeshes.current.push(hitbox);
@@ -409,12 +591,12 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
           const scale = 2.0 / maxH;
           model.scale.setScalar(scale);
 
-          // Center horizontally, sit bottom of shoe on pedestal top (y=0.22)
+          // Center horizontally, sit bottom of shoe on the plinth top
           box.setFromObject(model);
           const center = box.getCenter(new THREE.Vector3());
           model.position.x = -center.x;
           model.position.z = -center.z;
-          model.position.y = -box.min.y + 0.22;
+          model.position.y = -box.min.y + PLINTH_H;
 
           pivot.add(model);
         });
@@ -424,14 +606,14 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
           transparent: true, side: THREE.DoubleSide, depthWrite: false,
         });
         const plane = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.6), planeMat);
-        plane.position.set(0, 0.22 + 0.8, 0.05);
+        plane.position.set(0, PLINTH_H + 0.8, 0.05);
         pivot.add(plane);
 
         loadShoeTexture(opts.shoeImage, (tex, aspect) => {
           const pw = 2.4, ph = pw / aspect;
           plane.geometry.dispose();
           plane.geometry = new THREE.PlaneGeometry(pw, ph);
-          plane.position.y = 0.22 + ph / 2;
+          plane.position.y = PLINTH_H + ph / 2;
           planeMat.map = tex;
           planeMat.needsUpdate = true;
         });
@@ -444,7 +626,7 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
             emissive: shoe3D, emissiveIntensity: 0.25,
           })
         );
-        upper.position.set(0, 0.69, -0.05);
+        upper.position.set(0, PLINTH_H + 0.6, -0.05);
         upper.castShadow = true;
         pivot.add(upper);
       }
@@ -456,52 +638,59 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
       scene.add(overSpot);
       scene.add(overSpot.target);
 
-      // Accent color glow from below
+      // Accent color glow rising off the plinth top
       const accentGlow = new THREE.PointLight(accent3D, 3, 4);
-      accentGlow.position.set(x, 0.2, 0);
+      accentGlow.position.set(x, PLINTH_H + 0.1, 0);
       scene.add(accentGlow);
 
-      // ── Museum display panel — large cinematic backdrop ──────
-      // Tall portrait panel, shoe pedestal sits in front of it.
-      // Inspired by gallery lightbox installs: the player photo fills
-      // the full frame; bottom fades to black so the shoe reads clearly.
-      const placardW = 2.6;
-      const placardH = 4.8;
-      const placardCY = placardH / 2 + 0.05; // bottom near floor
-      const placardZ  = -1.55;
-
-      // Thin dark frame — barely visible, like gallery framing
-      const frameThick = 0.045;
-      const frameMat = new THREE.MeshStandardMaterial({
-        color:             new THREE.Color(0x111111),
-        emissive:          new THREE.Color(accentColor),
-        emissiveIntensity: 0.12,
-        roughness:         0.95,
-      });
-
-      const addFrameBar = (w: number, h: number, fx: number, fy: number) => {
-        const bar = new THREE.Mesh(new THREE.PlaneGeometry(w, h), frameMat);
-        bar.position.set(fx, fy, placardZ - 0.005);
-        scene.add(bar);
-      };
-      addFrameBar(placardW + frameThick * 2, frameThick, x, placardCY + placardH / 2 + frameThick / 2);
-      addFrameBar(placardW + frameThick * 2, frameThick, x, placardCY - placardH / 2 - frameThick / 2);
-      addFrameBar(frameThick, placardH, x - placardW / 2 - frameThick / 2, placardCY);
-      addFrameBar(frameThick, placardH, x + placardW / 2 + frameThick / 2, placardCY);
+      // ── Hanging banner — large portrait suspended from the ceiling ──
+      // A fabric banner floats behind the shoe on two thin cables with a
+      // top rod, so each exhibit has open air instead of a wall panel.
+      const bannerW   = 4.0;                       // true 2:3 with the 600×900 texture
+      const bannerH   = 6.0;
+      const bannerZ   = -2.8;
+      const bannerTop = 8.0;                       // lowered so it centers on the wall
+      const bannerCY  = bannerTop - bannerH / 2;   // banner center
 
       // Default canvas texture — shown when no player is selected
       const defaultTex = makeDisplayTexture(
         opts.displayNumber ?? '', opts.year ?? 0, accentColor
       );
 
-      const contentMat = new THREE.MeshBasicMaterial({ map: defaultTex, transparent: true });
+      const contentMat = new THREE.MeshBasicMaterial({
+        map: defaultTex, transparent: true, side: THREE.DoubleSide,
+      });
 
       const placard = new THREE.Mesh(
-        new THREE.PlaneGeometry(placardW, placardH),
+        new THREE.PlaneGeometry(bannerW, bannerH),
         contentMat
       );
-      placard.position.set(x, placardCY, placardZ);
+      placard.position.set(x, bannerCY, bannerZ);
       scene.add(placard);
+
+      // Suspension hardware — top dowel rod + two thin cables to the ceiling
+      const rigMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, metalness: 0.6, roughness: 0.4 });
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, bannerW + 0.3, 12), rigMat);
+      rod.rotation.z = Math.PI / 2;
+      rod.position.set(x, bannerTop + 0.05, bannerZ);
+      scene.add(rod);
+
+      const cableLen = WALL_H - bannerTop;          // ceiling down to the rod
+      [-1, 1].forEach((s) => {
+        const cable = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.012, 0.012, cableLen, 8),
+          rigMat
+        );
+        cable.position.set(x + s * bannerW * 0.42, bannerTop + cableLen / 2, bannerZ);
+        scene.add(cable);
+      });
+
+      // Soft warm spot so the banner art reads
+      const bannerSpot = new THREE.SpotLight(0xffe6c6, 4, 20, Math.PI / 7, 0.4, 1);
+      bannerSpot.position.set(x, 9.5, bannerZ + 3);
+      bannerSpot.target.position.set(x, bannerCY, bannerZ);
+      scene.add(bannerSpot);
+      scene.add(bannerSpot.target);
 
       // Register so updatePlacard can swap textures later
       placardRegistry.set(id, { mat: contentMat, defaultTex });
