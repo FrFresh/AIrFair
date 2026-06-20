@@ -17,15 +17,20 @@ function Jumpman() {
   return <span className="jumpman-mark card-jump" aria-hidden="true" />;
 }
 
+// On mobile the card opens as a compact peek so the shoe stays visible;
+// desktop opens expanded. User taps the grabber / ↓ control to toggle.
+const isMobile = () =>
+  typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+
 export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNext }: Props) {
   const [activePE, setActivePE] = useState<PE>(current.pes[0]);
-  const [minimized, setMinimized] = useState(false);
+  const [minimized, setMinimized] = useState(isMobile);
 
-  // When shoe changes: expand panel and reset to the featured PE
+  // When shoe changes: reset to the featured PE; collapse on mobile, expand on desktop
   useEffect(() => {
     const first = current.pes[0];
     setActivePE(first);
-    setMinimized(false);
+    setMinimized(isMobile());
     onPEChange?.(first);
   }, [current.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
