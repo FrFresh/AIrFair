@@ -40,6 +40,13 @@ export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNe
       style={{ '--accent': current.accentColor } as React.CSSProperties}
       aria-live="polite"
     >
+      {/* ── Grabber handle — tap to expand/collapse (prominent on mobile) ── */}
+      <button
+        className="card-grabber"
+        onClick={() => setMinimized((m) => !m)}
+        aria-label={minimized ? 'Expand card' : 'Minimize card'}
+      />
+
       {/* ── Top-right controls ─────────────────────────────────────── */}
       <div className="card-controls">
         <button

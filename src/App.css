@@ -179,6 +179,12 @@
   border-color: var(--line-2);
 }
 
+/* Grabber handle — tap to expand/collapse. Hidden on desktop (the ↓ control
+   covers it); a prominent pill on mobile where the card is a bottom sheet. */
+.card-grabber {
+  display: none;
+}
+
 /* Top zone: eyebrow / status / headline + corner numeral */
 .card-top {
   display: grid;
@@ -573,11 +579,42 @@
     left: 0;
     transform: none;
     width: 100%;
-    max-height: 58vh;
+    max-height: 52vh;
     border-radius: 18px 18px 0 0;
+    padding-top: 16px;
     padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
     animation: panelUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
+  /* Tappable grabber pill at the top of the bottom sheet */
+  .card-grabber {
+    display: block;
+    width: 100%;
+    height: 20px;
+    margin: -10px 0 6px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card-grabber::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(244, 241, 234, 0.32);
+    transition: background 0.2s;
+  }
+  .card-grabber:active::before { background: rgba(244, 241, 234, 0.55); }
+
+  /* Keep the ↓ / ✕ controls tappable above the full-width grabber */
+  .card-controls { z-index: 6; }
 
   @keyframes panelUp {
     from { transform: translateY(100%); opacity: 0; }
@@ -600,11 +637,11 @@
   .card-title { font-size: 1.85rem; }
   .card-desc { font-size: 13.5px; }
 
-  /* ── Minimized card on mobile: collapse to just the eyebrow line ── */
+  /* ── Minimized card on mobile: collapse to a compact peek ── */
   .info-card.minimized {
-    padding: 10px 18px;
+    padding: 14px 18px;
     padding-bottom: max(10px, calc(env(safe-area-inset-bottom) + 6px));
-    max-height: 86px; /* eyebrow + headline + controls */
+    max-height: 104px; /* grabber + eyebrow + headline + numeral */
   }
 
   /* Hide everything but the eyebrow/headline + corner numeral when minimized */
@@ -645,6 +682,6 @@
 /* Small phones */
 @media (max-width: 390px) {
   .nav button { padding: 10px 11px; font-size: 0.68rem; }
-  .info-card { max-height: 62vh; padding: 18px 18px; }
+  .info-card { max-height: 56vh; padding: 16px 18px; }
   .card-title { font-size: 1.6rem; }
 }
