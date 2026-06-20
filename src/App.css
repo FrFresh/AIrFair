@@ -321,7 +321,7 @@
 /* Collapsible body */
 .card-content {
   overflow: hidden;
-  max-height: 420px;
+  max-height: 1000px; /* generous cap — never clip long write-ups; collapses to 0 when minimized */
   opacity: 1;
   transition: max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.28s ease;
@@ -591,6 +591,10 @@
     min-height: 44px;
     -webkit-tap-highlight-color: transparent;
   }
+
+  /* The full-width nav leaves no room for the corner brand mark — hide it on
+     phones (branding still shows big on the welcome splash). */
+  .brand-label { display: none; }
 
   .card-numeral { font-size: 3.8rem; }
   .card-title { font-size: 1.85rem; }
