@@ -17,13 +17,39 @@
   position: fixed;
   top: max(22px, calc(env(safe-area-inset-top) + 14px));
   left: max(28px, calc(env(safe-area-inset-left) + 16px));
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.715rem; /* 10% larger than 0.65rem */
   font-weight: 800;
   letter-spacing: 5px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
   z-index: 100;
   text-transform: uppercase;
   pointer-events: none;
+}
+
+/* Cancel the trailing letter-spacing after "AIR" so the gap on each
+   side of the Jumpman is equal (R→logo === logo→F) */
+.brand-word:first-child {
+  margin-right: -5px;
+}
+
+/* Official Jumpman silhouette, painted in the current text color via a mask
+   so it can be any color and stays crisp. Used wherever the logo appears. */
+.jumpman-mark {
+  display: inline-block;
+  background-color: currentColor;
+  -webkit-mask: url('/images/ui/jumpman.png') center / contain no-repeat;
+          mask: url('/images/ui/jumpman.png') center / contain no-repeat;
+}
+
+.brand-jump {
+  width: 1.58em;  /* logo aspect ≈ 642:610 */
+  height: 1.5em;
+  flex: none;
+  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.7));
 }
 
 /* ── Navigation ── */
@@ -67,24 +93,42 @@
   color: #ffffff;
 }
 
-/* ── Museum Panel ── */
-.museum-panel {
+/* ── Info Card — player postcard (ported from JordanSneakerCard reference) ── */
+.info-card {
   position: fixed;
   top: 50%;
   right: 28px;
   transform: translateY(-50%);
-  width: 340px;
-  max-height: 78vh;
+  width: 360px;
+  max-height: 82vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: rgba(8, 8, 8, 0.92);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+
+  --ink: #f4f1ea;
+  --ink-2: #e0ddd4;
+  --ink-3: #b4b0a7;
+  --acid: #8DC63F;
+  --acid-ink: #173404;
+  --line: rgba(244, 241, 234, 0.10);
+  --line-2: rgba(244, 241, 234, 0.18);
+  --card-surface: #0c0c0c;
+  --cell: #161614;
+  --disp: 'Archivo', system-ui, sans-serif;
+  --body: 'Inter', system-ui, sans-serif;
+  --mono: 'Space Mono', ui-monospace, monospace;
+
+  background:
+    radial-gradient(120% 80% at 100% 0%, #141311 0%, transparent 55%),
+    var(--card-surface);
+  border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 28px 24px;
+  padding: 22px 24px 18px;
   z-index: 100;
+  color: var(--ink);
+  font-family: var(--body);
+  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.7);
   animation: panelIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-font-smoothing: antialiased;
 }
 
 @keyframes panelIn {
@@ -98,291 +142,250 @@
   }
 }
 
-.museum-panel::-webkit-scrollbar { width: 3px; }
-.museum-panel::-webkit-scrollbar-track { background: transparent; }
-.museum-panel::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+.info-card::-webkit-scrollbar { width: 3px; }
+.info-card::-webkit-scrollbar-track { background: transparent; }
+.info-card::-webkit-scrollbar-thumb {
+  background: rgba(244, 241, 234, 0.14);
   border-radius: 2px;
 }
 
-/* Panel header — prev/next nav + title + actions row */
-.panel-header {
+/* Top-right controls (minimize / close) */
+.card-controls {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  gap: 6px;
+  z-index: 3;
+}
+.card-ctrl {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(244, 241, 234, 0.05);
+  border: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.15s;
+  font-family: var(--mono);
+  -webkit-tap-highlight-color: transparent;
+}
+.card-ctrl:hover {
+  color: var(--ink);
+  border-color: var(--line-2);
+}
+
+/* Top zone: eyebrow / status / headline + corner numeral */
+.card-top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+}
+.card-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-right: 60px;
+}
+.card-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  background: rgba(141, 198, 63, 0.12);
+  border: 1px solid rgba(141, 198, 63, 0.45);
+  color: var(--acid);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.card-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acid);
+}
+.card-headline {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 14px;
+}
+
+.card-numeral-wrap {
+  position: relative;
   display: flex;
   align-items: flex-start;
+  gap: 3px;
+  margin: 16px -2px 0 0;
+}
+.card-jump {
+  width: 21px;
+  height: 20px;  /* logo aspect ≈ 642:610 */
+  color: var(--ink);
+  margin-top: 8px;
+  flex: none;
+  opacity: 0.9;
+}
+.card-numeral {
+  font-family: var(--disp);
+  font-weight: 900;
+  line-height: 0.78;
+  font-size: 4.6rem;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.card-title {
+  font-family: var(--disp);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  font-size: 2.15rem;
+  line-height: 0.95;
+  margin: 8px 0 0;
+  color: var(--ink);
+}
+
+/* Featured player row */
+.card-feat {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 14px;
+  margin-top: 13px;
+}
+.card-who {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--acid);
+}
+.card-team {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.card-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acid-ink);
+  background: var(--acid);
+  padding: 3px 7px;
+  border-radius: 5px;
 }
 
-.panel-title-stack {
-  flex: 1;
-  min-width: 0;
-}
-
-.panel-actions {
-  display: flex;
+.card-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-  margin-top: 2px;
+  gap: 6px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  background: var(--cell);
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  padding: 5px 12px;
 }
-
-/* ‹ › navigation buttons */
-.panel-nav-btn {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.55);
-  width: 36px;
-  height: 36px;
+.card-sw {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.3rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-.panel-nav-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: var(--acid);
 }
 
-/* ↓ / ↑ minimize button */
-.panel-minimize-btn {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.4);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.8rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s;
-  font-family: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-.panel-minimize-btn:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
-}
-
-/* Collapsible content below the header */
-.panel-content {
+/* Collapsible body */
+.card-content {
   overflow: hidden;
-  max-height: 700px;
+  max-height: 420px;
   opacity: 1;
   transition: max-height 0.38s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.28s ease;
 }
-.museum-panel.minimized .panel-content {
+.info-card.minimized .card-content {
   max-height: 0;
   opacity: 0;
   pointer-events: none;
 }
-
-.panel-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.25);
-  margin-bottom: 8px;
-}
-
-/* ── Showcase mode badge (inside eyebrow row) ── */
-.mode-badge {
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #fff;
-  padding: 2px 7px;
-  border-radius: 50px;
-  opacity: 0.85;
-  white-space: nowrap;
-}
-
-.panel-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-  line-height: 1.1;
-}
-
-.panel-subtitle {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.35);
-  margin-top: 5px;
-  font-weight: 500;
-}
-
-.panel-close {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.4);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.panel-close:hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: white;
-}
-
-.panel-description {
-  font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.45);
-  line-height: 1.65;
-  margin-bottom: 18px;
-}
-
-.panel-divider {
+.card-rule {
   height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-  margin-bottom: 18px;
+  background: var(--line);
+  margin: 18px 0;
 }
-
-.panel-section-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.25);
-  margin-bottom: 12px;
-}
-
-/* ── PE Tabs ── */
-.pe-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.pe-tab {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 6px 14px;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.2px;
-  font-family: inherit;
-}
-.pe-tab:hover {
-  color: white;
-  border-color: rgba(255, 255, 255, 0.25);
-}
-.pe-tab.active {
-  background: var(--accent, #D31F30);
-  border-color: var(--accent, #D31F30);
-  color: white;
-}
-
-/* ── PE Card ── */
-.pe-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  padding: 18px;
-}
-
-.pe-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
-.pe-designer-badge {
-  display: inline-block;
-  font-size: 0.5rem;
-  font-weight: 800;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: #fff;
-  padding: 3px 8px;
-  border-radius: 50px;
-  margin-bottom: 6px;
-}
-
-.pe-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: white;
-  margin-bottom: 3px;
-  line-height: 1.2;
-}
-
-.pe-athlete {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.35);
-  font-weight: 500;
-}
-
-.pe-year-badge {
-  font-size: 0.65rem;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 50px;
-  color: white;
-  flex-shrink: 0;
-  margin-left: 8px;
-  letter-spacing: 0.5px;
-}
-
-.pe-colorway {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.colorway-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.2);
-}
-
-.colorway-value {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.pe-summary {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+.card-desc {
+  font-size: 14px;
   line-height: 1.7;
+  color: var(--ink-2);
   margin: 0;
 }
+.card-desc b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Prev / next model nav */
+.card-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.card-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: none;
+  color: var(--ink-2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 2px;
+  border-radius: 6px;
+  transition: color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.card-nav-btn:hover { color: var(--ink); }
+.card-nav-arrow {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.card-ix {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--ink-3);
+}
+
 
 /* ── Zoom Controls ── */
 .zoom-controls {
@@ -425,47 +428,6 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* ── Player Photo ── */
-.pe-player-photo {
-  width: 100%;
-  height: 148px;
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  position: relative;
-}
-
-.pe-player-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center top;
-  display: block;
-}
-
-.pe-player-photo-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.03) 0%,
-    transparent 100%
-  );
-  border-left: 3px solid var(--accent, #D31F30);
-}
-
-.pe-player-photo-placeholder span {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.18);
-}
 
 /* ── Welcome splash (shown before the doors) ── */
 .welcome-screen {
@@ -560,7 +522,7 @@
   width: 100vw;
   height: 100vh;
   object-fit: cover;
-  object-position: center;
+  object-position: center top;
   display: block;
   pointer-events: none;
 }
@@ -604,14 +566,14 @@
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .museum-panel {
+  .info-card {
     top: auto;
     bottom: 0;
     right: 0;
     left: 0;
     transform: none;
     width: 100%;
-    max-height: 52vh;
+    max-height: 58vh;
     border-radius: 18px 18px 0 0;
     padding-bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
     animation: panelUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
@@ -630,48 +592,28 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  .panel-title { font-size: 1.5rem; }
-  .panel-description { font-size: 0.84rem; }
+  .card-numeral { font-size: 3.8rem; }
+  .card-title { font-size: 1.85rem; }
+  .card-desc { font-size: 13.5px; }
 
-  .pe-tab {
-    padding: 10px 16px;
-    min-height: 44px;
-    -webkit-tap-highlight-color: transparent;
+  /* ── Minimized card on mobile: collapse to just the eyebrow line ── */
+  .info-card.minimized {
+    padding: 10px 18px;
+    padding-bottom: max(10px, calc(env(safe-area-inset-bottom) + 6px));
+    max-height: 86px; /* eyebrow + headline + controls */
   }
 
-  .pe-player-photo { height: 130px; }
-
-  /* ── Minimized panel on mobile: collapse to just the eyebrow line ── */
-  .museum-panel.minimized {
-    padding: 8px 16px;
-    padding-bottom: max(8px, calc(env(safe-area-inset-bottom) + 4px));
-    max-height: 52px; /* tightly fits one text line + buttons */
-  }
-
-  .museum-panel.minimized .panel-header {
-    margin-bottom: 0;
-    align-items: center;
-  }
-
-  /* Hide shoe title and subtitle — leave only the eyebrow */
-  .museum-panel.minimized .panel-title,
-  .museum-panel.minimized .panel-subtitle {
+  /* Hide everything but the eyebrow/headline + corner numeral when minimized */
+  .info-card.minimized .card-status,
+  .info-card.minimized .card-title,
+  .info-card.minimized .card-feat,
+  .info-card.minimized .card-chip,
+  .info-card.minimized .card-nav {
     display: none;
   }
 
-  .museum-panel.minimized .panel-eyebrow {
-    margin-bottom: 0;
-    font-size: 0.58rem;
-  }
-
-  /* Shrink the action buttons in minimized state */
-  .museum-panel.minimized .panel-nav-btn,
-  .museum-panel.minimized .panel-minimize-btn,
-  .museum-panel.minimized .panel-close {
-    width: 30px;
-    height: 30px;
-    font-size: 1.1rem;
-  }
+  .info-card.minimized .card-numeral { font-size: 2.4rem; }
+  .info-card.minimized .card-headline { margin-top: 8px; }
 
   /* Swipe hint — faint arrow indicators on mobile */
   .swipe-hint {
@@ -693,12 +635,12 @@
 }
 
 @media (max-width: 768px) and (orientation: landscape) {
-  .museum-panel { max-height: 80vh; }
+  .info-card { max-height: 80vh; }
 }
 
 /* Small phones */
 @media (max-width: 390px) {
   .nav button { padding: 10px 11px; font-size: 0.68rem; }
-  .museum-panel { max-height: 55vh; padding: 18px 16px; }
-  .panel-title { font-size: 1.35rem; }
+  .info-card { max-height: 62vh; padding: 18px 18px; }
+  .card-title { font-size: 1.6rem; }
 }

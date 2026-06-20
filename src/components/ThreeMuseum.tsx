@@ -8,6 +8,10 @@ type SneakerOpts = {
   year?: number;
   shoeImage?: string;
   modelPath?: string;
+  /** Model file contains only a single shoe — mirror it into a left+right pair. */
+  mirrorToPair?: boolean;
+  /** Model file ships as a pair — keep just one shoe for a single-shoe display. */
+  singleFromPair?: boolean;
 };
 
 type PlacardEntry = {
@@ -584,21 +588,95 @@ export default function ThreeMuseum({ onReady, onSelect, onSwipe }: Props) {
             });
           });
 
-          // Scale so longest horizontal dimension = 2 world units
-          const box = new THREE.Box3().setFromObject(model);
-          const size = box.getSize(new THREE.Vector3());
-          const maxH = Math.max(size.x, size.z);
-          const scale = 2.0 / maxH;
-          model.scale.setScalar(scale);
+          if (opts.singleFromPair) {
+            // Model ships as a pair (e.g. AJ1's two meshes) — drop one shoe so
+            // every plinth shows a single hero shoe for continuity.
+            const meshes: THREE.Mesh[] = [];
+            model.traverse((c) => {
+              if ((c as THREE.Mesh).isMesh) meshes.push(c as THREE.Mesh);
+            });
+            if (meshes.length > 1) {
+              const centers = meshes.map((m) =>
+                new THREE.Box3().setFromObject(m).getCenter(new THREE.Vector3())
+              );
+              // Split along whichever horizontal axis separates the two shoes
+              const spreadX = Math.max(...centers.map((c) => c.x)) - Math.min(...centers.map((c) => c.x));
+              const spreadZ = Math.max(...centers.map((c) => c.z)) - Math.min(...centers.map((c) => c.z));
+              const axis = spreadX >= spreadZ ? 'x' : 'z';
+              const vals = centers.map((c) => c[axis]);
+              const mid = (Math.min(...vals) + Math.max(...vals)) / 2;
+              meshes.forEach((m, i) => {
+                if (vals[i] < mid) m.removeFromParent();
+              });
+            }
+          }
 
-          // Center horizontally, sit bottom of shoe on the plinth top
-          box.setFromObject(model);
-          const center = box.getCenter(new THREE.Vector3());
-          model.position.x = -center.x;
-          model.position.z = -center.z;
-          model.position.y = -box.min.y + PLINTH_H;
+          if (opts.mirrorToPair) {
+            // Model holds a single shoe — clone + mirror it into a pair so
+            // it matches the multi-mesh models (e.g. AJ1) that ship as a pair.
 
-          pivot.add(model);
+            // Scale so each shoe's footprint ≈ 1.4 units (two fit on the plinth)
+            let box = new THREE.Box3().setFromObject(model);
+            let size = box.getSize(new THREE.Vector3());
+            const scale = 1.4 / Math.max(size.x, size.z);
+            model.scale.setScalar(scale);
+
+            // Center the single shoe on its own origin so mirroring is clean
+            box.setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.x -= center.x;
+            model.position.y -= center.y;
+            model.position.z -= center.z;
+
+            // Mirrored twin (opposite foot). Clone materials so we can flip
+            // their winding side without affecting the original.
+            const twin = model.clone(true);
+            twin.traverse((c) => {
+              const mesh = c as THREE.Mesh;
+              if (!mesh.isMesh) return;
+              const wasArray = Array.isArray(mesh.material);
+              const mats = wasArray ? (mesh.material as THREE.Material[]) : [mesh.material as THREE.Material];
+              const cloned = mats.map((m) => {
+                const mm = m.clone();
+                (mm as THREE.MeshStandardMaterial).side = THREE.DoubleSide;
+                return mm;
+              });
+              mesh.material = wasArray ? cloned : cloned[0];
+            });
+            twin.scale.x *= -1; // mirror across X → right foot from left
+
+            // Sit the two shoes side by side with a small gap
+            box.setFromObject(model);
+            size = box.getSize(new THREE.Vector3());
+            const dx = size.x / 2 + 0.1;
+            model.position.x -= dx;
+            twin.position.x += dx;
+
+            const pair = new THREE.Group();
+            pair.add(model);
+            pair.add(twin);
+
+            // Rest the pair on the plinth top
+            const pairBox = new THREE.Box3().setFromObject(pair);
+            pair.position.y = PLINTH_H - pairBox.min.y;
+            pivot.add(pair);
+          } else {
+            // Scale so longest horizontal dimension = 2 world units
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const maxH = Math.max(size.x, size.z);
+            const scale = 2.0 / maxH;
+            model.scale.setScalar(scale);
+
+            // Center horizontally, sit bottom of shoe on the plinth top
+            box.setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.x = -center.x;
+            model.position.z = -center.z;
+            model.position.y = -box.min.y + PLINTH_H;
+
+            pivot.add(model);
+          }
         });
       } else if (opts.shoeImage) {
         // Flat image plane fallback

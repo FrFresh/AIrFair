@@ -4,6 +4,10 @@ export type SilhouetteId = 'aj1' | 'aj3' | 'aj12';
 
 export type PE = {
   athlete: string;
+  /** Team / affiliation shown next to the athlete name, e.g. "Los Angeles Lakers". */
+  team: string;
+  /** Tracked date headline — names the moment, e.g. "2017 · The Ten". */
+  moment: string;
   peName: string;
   year: number;
   colorway: string;
@@ -25,6 +29,10 @@ export type Silhouette = {
   shoeColor: string;
   pes: PE[];
   modelPath?: string;
+  /** True when the GLTF holds a single shoe that should be mirrored into a pair. */
+  singleShoeModel?: boolean;
+  /** True when the GLTF ships as a pair but only one shoe should be displayed. */
+  singleFromPair?: boolean;
   showcaseMode: ShowcaseMode;
   videoPath?: string;
   reference?: string;
@@ -46,14 +54,17 @@ export const SILHOUETTES: Silhouette[] = [
     shoeColor: '#D31F30',
     showcaseMode: ShowcaseMode.Scrim,
     modelPath: '/models/aj1/scene.gltf',
+    singleFromPair: true,
     pe: { athlete: 'Virgil Abloh', peName: 'The Ten · Off-White™', year: 2017, summary: '' },
     pes: [
       {
         athlete: 'Virgil Abloh',
+        team: 'Off-White™',
+        moment: '2017 · The Ten',
         peName: 'The Ten · Off-White™ AJ1',
         year: 2017,
-        colorway: 'White / Black / Cone Red',
-        summary: 'The only designer ever given his own ongoing collection with Nike. For 2017\'s "The Ten," Virgil Abloh deconstructed the Air Jordan 1 down to its bones — exposed foam, a raw Swoosh stitched in relief, the signature Off-White™ zip tie, helvetica "AIR," and hand-scrawled text. It blurred the line between product and art, turned the sneaker into a cultural object, and ignited the entire collaboration era that followed. No single release changed the game for sneakers more.',
+        colorway: 'White / Black / Varsity Red',
+        summary: 'Virgil Abloh never laced the Air Jordan 1 on a court — he took it apart on a workbench. For 2017\'s "The Ten," a ten-shoe Nike collaboration, he chose the Chicago AJ1 as his anchor and deconstructed it: exposed foam at the collar, an oversized off-center Swoosh, stripped stitching, "AIR" set on the midsole, "SHOELACES" printed on the laces, and a medial side stamped "Off-White for Nike … Beaverton, Oregon, USA © 1985." Finished with his signature zip tie, the $190 release blurred product and art — and lit the fuse on the entire collaboration era that followed.',
         playerImage: '/images/athletes/virgil-aj1.jpg',
         designer: true,
       },
@@ -70,44 +81,17 @@ export const SILHOUETTES: Silhouette[] = [
     shoeColor: '#e8e4de',
     showcaseMode: ShowcaseMode.Panels,
     modelPath: '/models/aj3/scene.gltf',
-    pe: { athlete: 'Kobe Bryant', peName: 'Kobe PE', year: 2002, summary: '' },
+    pe: { athlete: 'Kobe Bryant', peName: 'Kobe Lakers PE', year: 2003, summary: '' },
     pes: [
       {
         athlete: 'Kobe Bryant',
-        peName: 'Kobe PE',
-        year: 2002,
-        colorway: 'White / Gold / Purple',
-        summary: 'Before Kobe had his own signature line, Jordan Brand laced him in this Lakers-colorway AJ3 PE. A rare artifact from the peak of his first three-peat run. One of the most coveted PEs ever created.',
+        team: 'Los Angeles Lakers',
+        moment: '2002–03 · Sneaker Free Agency',
+        peName: 'Kobe Lakers PE',
+        year: 2003,
+        colorway: 'White / Purple / Gold',
+        summary: 'In the summer of 2002 Kobe Bryant walked away from adidas and spent the entire 2002–03 season as a rare sneaker free agent — no contract, free to lace whatever he wanted. He chose the Air Jordan 3. Jordan Brand built him a Lakers PE in white tumbled leather with purple-and-gold elephant print, and Kobe made it legend: 44 points the night he debuted them, then a 52-point double-overtime eruption against Houston capped by a baseline dunk over Yao Ming. He signed with Nike soon after — but for one untethered season, the Mamba flew in Tinker Hatfield\'s 3s.',
         playerImage: '/images/athletes/kobe-aj3.png',
-      },
-      {
-        athlete: 'Quentin Richardson',
-        peName: 'Q-Rich PE',
-        year: 2001,
-        colorway: 'Black / White / Cement',
-        summary: 'Phoenix Suns sharpshooter Q-Rich wore this clean cement PE during his breakout seasons. Understated and elite — just like his off-screen reputation around the league.',
-      },
-      {
-        athlete: 'Jason Williams',
-        peName: 'White Chocolate PE',
-        year: 2002,
-        colorway: 'Sacramento Purple / Black',
-        summary: 'Point guard Jason "White Chocolate" Williams ran the most entertaining show in Sacramento history. His AJ3 PE in Kings purple captures an era of no-look passes and full-arena mayhem.',
-      },
-      {
-        athlete: 'Dwyane Wade',
-        peName: 'Flash PE',
-        year: 2004,
-        colorway: 'Miami Red / Black / White',
-        summary: 'Before D-Wade had his own line, Jordan Brand outfitted the rookie in this Heat-themed AJ3 PE. A glimpse of the Flash before the whole world knew his name.',
-      },
-      {
-        athlete: 'Russell Westbrook',
-        peName: 'Westbrook OKC PE',
-        year: 2012,
-        colorway: 'Thunder Blue / Orange / White',
-        summary: 'A Jordan Brand cornerstone, Westbrook received this AJ3 PE in Oklahoma City\'s signature blue and orange during one of the most explosive offensive seasons in Thunder history. Russ in full flight — unstoppable.',
-        playerImage: '/images/athletes/westbrook-aj3.jpg',
       },
     ],
   },
@@ -122,44 +106,17 @@ export const SILHOUETTES: Silhouette[] = [
     shoeColor: '#f0f0f0',
     showcaseMode: ShowcaseMode.Lightbox,
     modelPath: '/models/aj12/scene.gltf',
-    pe: { athlete: 'Ray Allen', peName: 'Sugar Ray PE', year: 2008, summary: '' },
+    pe: { athlete: 'Carmelo Anthony', peName: 'Melo PE', year: 2004, summary: '' },
     pes: [
       {
-        athlete: 'Ray Allen',
-        peName: 'Sugar Ray PE — Celtics Championship',
-        year: 2008,
-        colorway: 'White / Celtics Green / Black',
-        summary: 'Ray Allen signed with Jordan Brand early in his career and accumulated more PEs than nearly any player in the brand\'s history. This white and Celtics green AJ12 was worn during Boston\'s 2007–08 championship run — the season Allen, Paul Pierce, and Kevin Garnett formed the Big Three. Clean colorway. Cleaner jump shot. Banner season.',
-        playerImage: '/images/athletes/ray-allen-aj12.jpg',
-      },
-      {
-        athlete: 'Ray Allen',
-        peName: 'Sugar Ray PE — Sonics Alternate',
-        year: 2003,
-        colorway: 'Green / Gold / White',
-        summary: 'Before Boston, Ray Allen was the face of the Seattle SuperSonics franchise. This AJ12 PE in Sonics alternate colors with orange-gold accents captures the era when Allen averaged 23+ points a night in the Pacific Northwest — and was quietly building one of the deepest Jordan Brand PE collections in NBA history.',
-      },
-      {
-        athlete: 'Gary Payton',
-        peName: 'The Glove PE',
-        year: 2002,
-        colorway: 'Black / Sonics Green / White',
-        summary: 'The best defensive point guard of his generation. Gary Payton\'s AJ12 PE in SuperSonics black and green is as relentless and locked-in as his on-ball defense. Nine-time All-Defensive First Team. One shoe to match the legacy.',
-      },
-      {
         athlete: 'Carmelo Anthony',
+        team: 'Denver Nuggets',
+        moment: '2003–04 · Nuggets Rookie PE',
         peName: 'Melo PE',
         year: 2004,
-        colorway: 'Black / Gold / White',
-        summary: 'Fresh off a historic rookie year in Denver, Melo received this sleek black and gold AJ12 PE in his second season. Already a cornerstone of the Jordan Brand family before turning 21 — the gold accents nodding to his Olympic and Syracuse bloodlines.',
+        colorway: 'White / University Blue',
+        summary: 'Carmelo Anthony signed with Jordan Brand as a rookie in 2003 — handed wider latitude than any Air Jordan ambassador before him, which fueled a near-endless rotation of personal Air Jordan 12 PEs. The signature pair was this one: a white-and-University-Blue 12 in his Denver Nuggets colors with "Melo" stitched at the heel, laced through his rookie season in the Mile High City. It made him a cornerstone of the brand\'s post-MJ generation almost from the day he arrived.',
         playerImage: '/images/athletes/carmelo-aj12.jpg',
-      },
-      {
-        athlete: 'Mike Bibby',
-        peName: 'Bibby PE',
-        year: 2002,
-        colorway: 'Sacramento Purple / White / Black',
-        summary: 'Mike Bibby orchestrated one of the most entertaining Kings dynasties from the point. Sacramento\'s 2001–02 team came within a controversial Game 6 of the NBA Finals. His royal purple AJ12 PE is one of the rarest and most sought-after exclusives of that era.',
       },
     ],
   },

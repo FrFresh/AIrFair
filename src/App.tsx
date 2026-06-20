@@ -16,7 +16,7 @@ import './App.css';
  * and mount LightboxPE into that scene instead.
  */
 
-type SneakerOpts = { displayNumber?: string; year?: number; shoeImage?: string; modelPath?: string };
+type SneakerOpts = { displayNumber?: string; year?: number; shoeImage?: string; modelPath?: string; mirrorToPair?: boolean; singleFromPair?: boolean };
 
 type SceneApi = {
   scene: THREE.Scene;
@@ -127,6 +127,8 @@ export default function App() {
         year: s.year,
         shoeImage: s.shoeImage,
         modelPath: s.modelPath,
+        mirrorToPair: s.singleShoeModel,
+        singleFromPair: s.singleFromPair,
       });
       const startY = shoe.position.y;
       const loop = () => {
@@ -185,7 +187,11 @@ export default function App() {
         </div>
       )}
 
-      <div className="brand-label">AIR FAIR</div>
+      <div className="brand-label">
+        <span className="brand-word">Air</span>
+        <span className="jumpman-mark brand-jump" aria-hidden="true" />
+        <span className="brand-word">Fair</span>
+      </div>
 
       {/* All gallery UI — hidden until user enters */}
       {phase === 'gallery' && (
