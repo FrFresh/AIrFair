@@ -205,13 +205,8 @@ export default function App() {
             </h2>
             <p className="about-body">
               Air Fair is a digital museum that treats sneakers as the cultural
-              artifacts they are. We chose three silhouettes — the Air Jordan 1, 3,
-              and 12 — and the players and designers who made them legends, from
-              Kobe's untethered free-agent season to Virgil's deconstruction of a
-              classic.
-            </p>
-            <p className="about-body">
-              No price tags, no checkout — just a quiet hall where each shoe gets the
+              artifacts they are — three silhouettes (the Air Jordan 1, 3, and 12)
+              and the players and designers who made them legends, each given the
               reverence usually reserved for fine art. Take your time, and look closer.
             </p>
             <button className="about-enter" onClick={() => setShowAbout(false)}>
