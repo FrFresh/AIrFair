@@ -34,6 +34,8 @@ export default function App() {
   const [introFading, setIntroFading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const [welcomeFading, setWelcomeFading] = useState(false);
+  // Welcome/about card shown once over the gallery after entering
+  const [showAbout, setShowAbout] = useState(true);
 
   // Keep refs so stable callbacks (useCallback []) can always read latest state
   const apiRef     = useRef<SceneApi | null>(null);
@@ -163,10 +165,6 @@ export default function App() {
           className={`welcome-screen${welcomeFading ? ' fading' : ''}`}
           onClick={handleWelcomeClick}
         >
-          <h1 className="welcome-title">
-            <span className="welcome-title-sm">Welcome to</span>
-            <span className="welcome-title-lg">Air Fair</span>
-          </h1>
           <div className="welcome-prompt">Click to Enter</div>
         </div>
       )}
@@ -192,6 +190,36 @@ export default function App() {
         <span className="jumpman-mark brand-jump" aria-hidden="true" />
         <span className="brand-word">Fair</span>
       </div>
+
+      {/* ── Welcome / about card — shown once over the gallery on entry ──── */}
+      {phase === 'gallery' && showAbout && (
+        <div className="about-overlay" onClick={() => setShowAbout(false)}>
+          <div className="about-card" onClick={(e) => e.stopPropagation()}>
+            <div className="about-eyebrow">
+              <span className="jumpman-mark about-jump" aria-hidden="true" />
+              The Digital Museum of Jordan Silhouettes
+            </div>
+            <h2 className="about-title">
+              Welcome to<br />
+              <span className="about-title-ln">Air Fair</span>
+            </h2>
+            <p className="about-body">
+              Air Fair is a digital museum that treats sneakers as the cultural
+              artifacts they are. We chose three silhouettes — the Air Jordan 1, 3,
+              and 12 — and the players and designers who made them legends, from
+              Kobe's untethered free-agent season to Virgil's deconstruction of a
+              classic.
+            </p>
+            <p className="about-body">
+              No price tags, no checkout — just a quiet hall where each shoe gets the
+              reverence usually reserved for fine art. Take your time, and look closer.
+            </p>
+            <button className="about-enter" onClick={() => setShowAbout(false)}>
+              Enter the Museum
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* All gallery UI — hidden until user enters */}
       {phase === 'gallery' && (
