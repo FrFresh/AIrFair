@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import ThreeMuseum from './components/ThreeMuseum';
 import SneakerRoom from './components/SneakerRoom';
+import StayInTouch from './components/StayInTouch';
 import { SILHOUETTES, Silhouette } from './data/silhouettes';
 import { moveCameraTo } from './lib/camera';
 import './App.css';
@@ -257,6 +258,9 @@ export default function App() {
           {!current && (
             <div className="swipe-hint">← swipe to explore →</div>
           )}
+
+          {/* Stay-in-touch signup (lower right) — appears once the about card is dismissed */}
+          {!showAbout && <StayInTouch />}
         </>
       )}
     </>

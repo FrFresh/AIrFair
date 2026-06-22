@@ -55,11 +55,20 @@ export default function SneakerRoom({ current, onClose, onPEChange, onPrev, onNe
       {/* ── Top-right controls ─────────────────────────────────────── */}
       <div className="card-controls">
         <button
-          className="card-ctrl"
+          className={`card-ctrl card-ctrl-toggle${minimized ? '' : ' flip'}`}
           onClick={() => setMinimized((m) => !m)}
           aria-label={minimized ? 'Expand card' : 'Minimize card'}
         >
-          {minimized ? '↑' : '↓'}
+          <svg className="chevron" viewBox="0 0 24 14" aria-hidden="true">
+            <path
+              d="M2 12 L12 3 L22 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
         {onClose && (
           <button className="card-ctrl" onClick={onClose} aria-label="Close">

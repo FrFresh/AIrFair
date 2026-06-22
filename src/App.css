@@ -159,13 +159,13 @@
   z-index: 3;
 }
 .card-ctrl {
-  width: 28px;
-  height: 28px;
+  width: 31px;
+  height: 31px;
   border-radius: 50%;
   background: rgba(244, 241, 234, 0.05);
   border: 1px solid var(--line);
   color: var(--ink-3);
-  font-size: 0.7rem;
+  font-size: 0.76rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,6 +177,26 @@
 .card-ctrl:hover {
   color: var(--ink);
   border-color: var(--line-2);
+}
+
+/* Expand / collapse toggle — neon-green chevron for contrast, flips on state */
+.card-ctrl-toggle {
+  color: #aaff2e;
+  border-color: rgba(170, 255, 46, 0.4);
+}
+.card-ctrl-toggle:hover {
+  color: #c2ff5e;
+  border-color: rgba(170, 255, 46, 0.7);
+}
+.card-ctrl-toggle .chevron {
+  width: 13px;
+  height: auto;
+  display: block;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 0 4px rgba(170, 255, 46, 0.6));
+}
+.card-ctrl-toggle.flip .chevron {
+  transform: rotate(180deg);
 }
 
 /* Grabber handle — tap to expand/collapse. Hidden on desktop (the ↓ control
@@ -758,4 +778,115 @@
   .nav button { padding: 10px 11px; font-size: 0.68rem; }
   .info-card { max-height: 56vh; padding: 16px 18px; }
   .card-title { font-size: 1.6rem; }
+}
+
+/* ── Stay in Touch signup (lower-right of the gallery) ── */
+.stay-touch {
+  position: fixed;
+  right: max(20px, calc(env(safe-area-inset-right) + 12px));
+  bottom: max(20px, calc(env(safe-area-inset-bottom) + 14px));
+  z-index: 130;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: 250px;
+  max-width: calc(100vw - 40px);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.stay-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(12, 12, 12, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 241, 234, 0.14);
+  border-radius: 999px;
+  color: #e0ddd4;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.stay-toggle:hover { border-color: rgba(244, 241, 234, 0.28); color: #f4f1ea; }
+.stay-jump { width: 13px; height: 12px; color: #8DC63F; flex: none; }
+.stay-caret { color: #8DC63F; font-size: 9px; margin-left: 2px; }
+
+.stay-panel {
+  width: 100%;
+  background: linear-gradient(180deg, rgba(14, 14, 14, 0.96), rgba(8, 8, 8, 0.96));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(244, 241, 234, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+  animation: stayIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes stayIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.stay-form { display: flex; flex-direction: column; gap: 10px; }
+.stay-heading {
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b4b0a7;
+  margin-bottom: 2px;
+}
+.stay-input {
+  background: rgba(244, 241, 234, 0.05);
+  border: 1px solid rgba(244, 241, 234, 0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #f4f1ea;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.stay-input::placeholder { color: #8c897f; }
+.stay-input:focus { border-color: rgba(141, 198, 63, 0.6); }
+.stay-submit {
+  background: #8DC63F;
+  color: #173404;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: filter 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.stay-submit:disabled { opacity: 0.45; cursor: default; }
+.stay-submit:not(:disabled):hover { filter: brightness(1.08); }
+.stay-error { color: #e8908f; font-size: 11px; }
+.stay-thanks {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e0ddd4;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  /* Lift above the bottom-sheet card peek so the pill stays tappable */
+  .stay-touch {
+    bottom: max(118px, calc(env(safe-area-inset-bottom) + 110px));
+    width: 230px;
+  }
 }
